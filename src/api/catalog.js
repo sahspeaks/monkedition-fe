@@ -86,6 +86,12 @@ export const getAllProducts = async () => {
   return (await allPages("/api/v2/products")).map((item) => toLegacyListItem(item, byId));
 };
 
+/** The home page's picks, best rated across every subcategory. */
+export const getFeaturedProducts = async () => {
+  const data = await api.get("/api/v2/products/featured", { auth: false });
+  return (data.items ?? []).map((item) => toLegacyListItem(item));
+};
+
 const SUGGESTIONS = 5;
 
 /** The first few matches, for the search box. */
