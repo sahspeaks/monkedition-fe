@@ -11,10 +11,10 @@ function Footer() {
       
       {/* Main Footer Content */}
       <div className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
           
           {/* Brand & Description */}
-          <div className="md:col-span-2 lg:col-span-1">
+          <div className="col-span-2 lg:col-span-1">
             <div className="mb-4">
               <img src={assets.logo} alt="Moonsflare Logo" className="h-10 w-auto" />
             </div>
@@ -69,7 +69,7 @@ function Footer() {
           </div>
 
           {/* Social & Contact */}
-          <div>
+          <div className="col-span-2 lg:col-span-1">
             <h3 className="text-lg font-bold mb-5 tracking-wide">Stay Connected</h3>
 
             {/* Email */}
