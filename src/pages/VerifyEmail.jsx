@@ -23,7 +23,7 @@ const VerifyEmail = () => {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-canvas py-12 px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 space-y-5 text-center">
         <h1 className="text-2xl font-bold text-gray-900">Confirm your email</h1>
         <p className="text-sm text-gray-600">
@@ -31,7 +31,7 @@ const VerifyEmail = () => {
           {status === "verified" && "Your email is confirmed. Thank you!"}
           {status === "failed" && "This link is invalid or has expired."}
         </p>
-        <Link to="/" className="block text-sm text-orange-500 hover:underline">
+        <Link to="/" className="block text-sm text-orange-700 hover:underline">
           Continue shopping
         </Link>
       </div>

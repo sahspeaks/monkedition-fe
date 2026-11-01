@@ -23,7 +23,7 @@ function Navbar() {
     navigate("/login");
   }, [logout, navigate]);
   return (
-    <div className=" flex items-center justify-between pt-2 pb-4 font-medium px-10 sticky top-0 bg-white z-50">
+    <div className=" flex items-center justify-between pt-2 pb-4 font-medium px-10 sticky top-0 bg-canvas z-50">
       {/* LOGO Icon */}
       <Link to={"/"}>
         <img src={assets.logoName} alt="Monkedition" className="h-10" />

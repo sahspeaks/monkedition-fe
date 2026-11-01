@@ -140,7 +140,7 @@ const ReviewForm = ({ productId }) => {
       </div>
       {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
       {message && <p role="status" className="text-xs text-green-700">{message}</p>}
-      <button type="submit" disabled={busy || uploading} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-300 text-black disabled:opacity-50">
+      <button type="submit" disabled={busy || uploading} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-black disabled:opacity-50">
         {busy ? "Saving..." : "Save review"}
       </button>
     </form>

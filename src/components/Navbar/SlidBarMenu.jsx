@@ -48,7 +48,7 @@ function SlidBarMenu({ menuVisible, setMenuVisible }) {
       <div className="sticky top-0 z-10 bg-white">
         <div
           onClick={() => setMenuVisible(false)}
-          className="w-10 h-10 bg-orange-300 cursor-pointer gap-4 flex items-center justify-center group rounded-r-full my-2"
+          className="w-10 h-10 bg-orange-500 cursor-pointer gap-4 flex items-center justify-center group rounded-r-full my-2"
         >
           <img
             src={assets.cancel}

@@ -96,7 +96,7 @@ const AddressBook = () => {
           <button
             type="button"
             onClick={startAdd}
-            className="px-3 py-1 text-sm bg-orange-300 text-black rounded hover:bg-orange-400"
+            className="px-3 py-1 text-sm bg-orange-500 text-black rounded hover:bg-orange-600"
           >
             Add address
           </button>
@@ -104,7 +104,7 @@ const AddressBook = () => {
       </div>
 
       {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
-      {loading && <Loader2 className="h-5 w-5 animate-spin text-orange-300" />}
+      {loading && <Loader2 className="h-5 w-5 animate-spin text-orange-700" />}
       {!loading && !editing && addresses.length === 0 && (
         <p className="text-sm text-gray-600">No saved addresses yet.</p>
       )}
@@ -136,7 +136,7 @@ const AddressBook = () => {
             <button
               type="submit"
               disabled={busy}
-              className="px-4 py-2 text-sm bg-orange-300 text-black rounded disabled:opacity-50"
+              className="px-4 py-2 text-sm bg-orange-500 text-black rounded disabled:opacity-50"
             >
               {busy ? "Saving..." : "Save address"}
             </button>
@@ -159,7 +159,7 @@ const AddressBook = () => {
                 {address.city}, {address.state} - {address.pincode}
               </p>
               <p className="text-gray-600">Phone: {address.phone}</p>
-              <div className="flex gap-4 mt-2 text-orange-500">
+              <div className="flex gap-4 mt-2 text-orange-700">
                 <button type="button" disabled={busy} onClick={() => startEdit(address)} className="hover:underline">
                   Edit
                 </button>

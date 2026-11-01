@@ -25,7 +25,7 @@ const Unsubscribe = () => {
           {status === "done" && "You will not get cart reminders any more. We will still email you about your orders."}
           {status === "failed" && "This link is not valid. Please contact us and we will sort it out."}
         </p>
-        <Link to="/" className="inline-block text-sm text-orange-600 hover:underline">Back to the shop</Link>
+        <Link to="/" className="inline-block text-sm text-orange-700 hover:underline">Back to the shop</Link>
       </div>
     </div>
   );

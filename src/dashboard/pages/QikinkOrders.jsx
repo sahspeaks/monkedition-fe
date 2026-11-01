@@ -90,7 +90,7 @@ const QikinkOrders = () => {
                   label: "Our order",
                   render: (o) =>
                     o.orderNumber ? (
-                      <Link to={`/dashboard/orders/${o.orderNumber}`} className="text-orange-600 hover:underline whitespace-nowrap">
+                      <Link to={`/dashboard/orders/${o.orderNumber}`} className="text-orange-700 hover:underline whitespace-nowrap">
                         {o.orderNumber}
                       </Link>
                     ) : (
@@ -108,7 +108,7 @@ const QikinkOrders = () => {
                   label: "Tracking",
                   render: (o) =>
                     o.shipping?.awb ? (
-                      <a href={o.shipping.tracking_link} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline whitespace-nowrap">
+                      <a href={o.shipping.tracking_link} target="_blank" rel="noopener noreferrer" className="text-orange-700 hover:underline whitespace-nowrap">
                         {o.shipping.courier_provider_name?.trim() || "Track"}
                       </a>
                     ) : (

@@ -29,10 +29,10 @@ const Receipt = () => {
   return (
     <main className="max-w-2xl mx-auto bg-white p-6 sm:p-10 text-sm text-gray-800">
       <div className="flex justify-between gap-3 mb-6 print:hidden">
-        <Link to={params.get("staff") ? `/dashboard/orders/${order.orderNumber}` : "/orders"} className="text-orange-600 hover:underline">
+        <Link to={params.get("staff") ? `/dashboard/orders/${order.orderNumber}` : "/orders"} className="text-orange-700 hover:underline">
           Back
         </Link>
-        <button type="button" onClick={() => window.print()} className="px-4 py-2 rounded-lg font-medium bg-orange-300 text-black">
+        <button type="button" onClick={() => window.print()} className="px-4 py-2 rounded-lg font-medium bg-orange-500 text-black">
           Print or save as PDF
         </button>
       </div>

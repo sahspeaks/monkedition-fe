@@ -21,7 +21,7 @@ function ProfileInputTile({
         disabled={!isDisable}
         onChange={handleInputChange}
         required={required}
-        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500"
+        className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-orange-600"
       />
     </div>
   );

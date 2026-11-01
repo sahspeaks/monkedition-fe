@@ -19,7 +19,7 @@ const PolicyHighlight = ({ icon: Icon, title, description }) => (
     {/* Icon wrapper */}
     <div className="mb-4 p-3 rounded-full bg-orange-50 transition-all duration-300 group-hover:bg-orange-100 group-hover:scale-110 relative z-10">
       <Icon 
-        className="w-8 h-8 text-orange-400 transition-all duration-300 group-hover:text-orange-500" 
+        className="w-8 h-8 text-orange-700 transition-all duration-300 group-hover:text-orange-800" 
         strokeWidth={1.5} 
       />
     </div>
@@ -77,7 +77,7 @@ const PolicyHighlights = () => {
   ];
 
   return (
-    <div className="bg-gray-50 py-16 px-4">
+    <div className="bg-canvas py-16 px-4">
       <div className="max-w-6xl mx-auto">
         
         {/* Header section */}
@@ -106,7 +106,7 @@ const PolicyHighlights = () => {
         <div className="text-center mt-16 animate-fade-in-up" style={{ animationDelay: '800ms' }}>
           <div className="inline-flex items-center space-x-2 px-6 py-3 bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-full   transition-all duration-300 hover:bg-white hover:border-orange-200/50">
             <span className="text-gray-600 text-sm font-medium">Have questions about our policies?</span>
-            <span className="text-orange-500 text-sm font-semibold hover:text-orange-600 cursor-pointer transition-colors">
+            <span className="text-orange-700 text-sm font-semibold hover:text-orange-800 cursor-pointer transition-colors">
                <Link
               to="/contact"
               className="hover:font-medium transition-colors duration-300"

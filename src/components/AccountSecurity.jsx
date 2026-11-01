@@ -66,7 +66,7 @@ const AccountSecurity = () => {
       </div>
 
       {user?.emailVerified === false && (
-        <div className="border-l-4 border-orange-300 bg-orange-50 p-4 rounded text-sm">
+        <div className="border-l-4 border-orange-500 bg-orange-50 p-4 rounded text-sm">
           <p className="text-gray-800">Your email address is not verified yet.</p>
           {resendStatus === "sent" ? (
             <p className="mt-1 text-gray-700">A new link is on its way to {user.email}.</p>
@@ -75,7 +75,7 @@ const AccountSecurity = () => {
               type="button"
               disabled={resendStatus === "sending"}
               onClick={resend}
-              className="mt-1 text-orange-600 hover:underline disabled:opacity-50"
+              className="mt-1 text-orange-700 hover:underline disabled:opacity-50"
             >
               {resendStatus === "sending" ? "Sending..." : "Send a new verification link"}
             </button>
@@ -112,7 +112,7 @@ const AccountSecurity = () => {
           <button
             type="submit"
             disabled={busy}
-            className="px-4 py-2 text-sm bg-orange-300 text-black rounded disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-orange-500 text-black rounded disabled:opacity-50"
           >
             Change password
           </button>

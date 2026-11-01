@@ -171,7 +171,7 @@ function Collection() {
       </div>
     );
     const button = (label, onClick) => (
-      <button type="button" onClick={onClick} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-300 text-black">
+      <button type="button" onClick={onClick} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-black">
         {label}
       </button>
     );
@@ -235,7 +235,7 @@ function Collection() {
           <img className={`h-3 sm:hidden ${showFilter ? "rotate-90" : ""}`} src={assets.dropdown_icon} alt="" />
         </button>
         {hasRefinements && (
-          <button type="button" onClick={clearRefinements} className="text-sm text-orange-600 hover:underline">
+          <button type="button" onClick={clearRefinements} className="text-sm text-orange-700 hover:underline">
             Clear filters
           </button>
         )}

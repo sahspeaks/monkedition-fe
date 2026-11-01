@@ -109,7 +109,7 @@ const Profile = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-orange-300" />
+        <Loader2 className="h-12 w-12 animate-spin text-orange-700" />
       </div>
     );
   }
@@ -133,7 +133,7 @@ const Profile = () => {
 
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="rounded-full bg-orange-300 p-3 hover:bg-orange-400 transition-colors"
+            className="rounded-full bg-orange-500 p-3 hover:bg-orange-600 transition-colors"
             disabled={updateLoading}
           >
             {updateLoading ? (
@@ -250,7 +250,7 @@ const Profile = () => {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2 bg-orange-300 text-black rounded hover:bg-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-orange-500 text-black rounded hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={updateLoading || uploadingAvatar}
               >
                 {updateLoading ? (

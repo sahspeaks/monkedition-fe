@@ -47,7 +47,7 @@ const ColorSelector = ({ colors = [], selectedColor, onColorSelect }) => {
             
               ${
                 selectedColor === colorCode
-                  ? "ring-2 ring-orange-300 border-orange-400 shadow-lg"
+                  ? "ring-2 ring-orange-500 border-orange-600 shadow-lg"
                   : "border-gray-200 hover:border-gray-400"
               }
               ${LIGHT_COLOURS.has(colorCode) ? "border-gray-300" : ""}
@@ -217,7 +217,7 @@ function Product() {
     } else if (stock > 0 && stock <= 10) {
       return <span className="text-yellow-500">Only {stock} Left</span>;
     } else if (stock > 10 && stock <= 20) {
-      return <span className="text-orange-500">Hurry Up</span>;
+      return <span className="text-orange-700">Hurry Up</span>;
     } else {
       return <span className="text-green-500">In Stock</span>;
     }
@@ -581,11 +581,11 @@ function Product() {
             : "We could not load this product."}
         </p>
         {loadError === "missing" ? (
-          <button type="button" onClick={() => navigate("/")} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-300 text-black">
+          <button type="button" onClick={() => navigate("/")} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-black">
             Back to home
           </button>
         ) : (
-          <button type="button" onClick={() => setAttempt((count) => count + 1)} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-300 text-black">
+          <button type="button" onClick={() => setAttempt((count) => count + 1)} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-black">
             Try again
           </button>
         )}
@@ -726,7 +726,7 @@ function Product() {
                     alt={`Thumbnail ${index + 2} of product`}
                     className={`w-[80px] h-[90px] md:w-full md:h-auto object-cover flex-shrink-0 rounded-md cursor-pointer transition-all hover:opacity-80 ${
                       currentImageIndex === index + 1
-                        ? "ring-2 ring-orange-300"
+                        ? "ring-2 ring-orange-500"
                         : ""
                     }`}
                   />
@@ -785,7 +785,7 @@ function Product() {
             {product?.productCategory?.name && (
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 rounded-full bg-orange-300 text-xs text-black mt-2"
+                className="px-4 py-2 rounded-full bg-orange-500 text-xs text-black mt-2"
               >
                 Size Chart
               </button>
@@ -809,7 +809,7 @@ function Product() {
                       !available
                         ? "opacity-40 line-through cursor-not-allowed"
                         : item === size
-                          ? "ring-2 ring-orange-300 text-black font-bold bg-orange-50"
+                          ? "ring-2 ring-orange-500 text-black font-bold bg-orange-50"
                           : "font-light"
                     }`}
                   >
@@ -833,7 +833,7 @@ function Product() {
                 <button
                   onClick={handleBuyNow}
                   disabled={isSoldOut}
-                  className="text-black w-full sm:w-auto px-8 py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-700 bg-orange-300 rounded-md hover:bg-orange-400 transition-colors"
+                  className="text-black w-full sm:w-auto px-8 py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-700 bg-orange-500 rounded-md hover:bg-orange-600 transition-colors"
                 >
                   {isSoldOut ? "SOLD OUT" : "BUY NOW"}
                 </button>

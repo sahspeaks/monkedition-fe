@@ -10,13 +10,13 @@ function NewsletterBox() {
   return (
     <div className="text-center mt-8 px-2 md:px-24">
       <p className="text-2xl font-medium text-gray-800 mb-2">
-        Stay Tuned for <span className="text-orange-300">Exclusive Offers</span>
+        Stay Tuned for <span className="text-orange-700">Exclusive Offers</span>
       </p>
       <p className="text-gray-500 text-justify">
         Our newsletter subscription feature is coming soon! Subscribe to get
         special discounts, early access to new designs, and stay updated with
         the latest drops from Monkedition. Be among the first to receive our{" "}
-        <span className="text-orange-300">20% off</span> welcome discount when
+        <span className="text-orange-700">20% off</span> welcome discount when
         subscriptions go live.
       </p>
       <ToastContainer />
@@ -32,7 +32,7 @@ function NewsletterBox() {
         />
         <button
           type="submit"
-          className="bg-orange-300 text-black text-xs px-10 py-4 font-semibold hover:bg-orange-400 transition-colors"
+          className="bg-orange-500 text-black text-xs px-10 py-4 font-semibold hover:bg-orange-600 transition-colors"
         >
           Coming Soon
         </button>

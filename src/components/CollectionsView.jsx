@@ -166,16 +166,16 @@ const NewlyAddedProductCard = ({ product, onClick, index }) => (
     }}
   >
     {/* Premium glassmorphism container with orange accents */}
-    <div className="relative bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl hover:shadow-orange-300/20 hover:shadow-3xl border border-orange-200/30 overflow-hidden transition-all duration-700 ease-out group-hover:bg-white/95 group-hover:border-orange-300/50">
+    <div className="relative bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl hover:shadow-orange-500/20 hover:shadow-3xl border border-orange-200/30 overflow-hidden transition-all duration-700 ease-out group-hover:bg-white/95 group-hover:border-orange-500/50">
       
       {/* Sophisticated gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-300/0 via-orange-300/5 to-orange-300/15 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-orange-500/5 to-orange-500/15 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
       
       {/* Refined NEW badge with elegant animation */}
       {/* <div className="absolute top-3 right-3 z-20">
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-300 to-orange-400 rounded-full animate-pulse opacity-75"></div>
-          <div className="relative bg-gradient-to-r from-orange-300 to-orange-400 text-white px-3 py-1.5 rounded-full text-xs font-bold tracking-wider shadow-xl backdrop-blur-sm">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full animate-pulse opacity-75"></div>
+          <div className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1.5 rounded-full text-xs font-bold tracking-wider shadow-xl backdrop-blur-sm">
             NEW
           </div>
         </div>
@@ -191,12 +191,12 @@ const NewlyAddedProductCard = ({ product, onClick, index }) => (
         
         {/* Elegant overlays for depth */}
         <div className="absolute inset-0 bg-gradient-to-t from-orange-900/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-300/10 via-transparent to-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
         
         {/* Subtle floating particles */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-1000">
-          <div className="absolute top-1/4 left-1/4 w-1.5 h-1.5 bg-orange-300/80 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
-          <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-orange-400/70 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+          <div className="absolute top-1/4 left-1/4 w-1.5 h-1.5 bg-orange-500/80 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+          <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-orange-600/70 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
           <div className="absolute bottom-1/3 left-1/2 w-1 h-1 bg-orange-200/80 rounded-full animate-bounce" style={{animationDelay: '0.6s'}}></div>
         </div>
       </div>
@@ -206,13 +206,13 @@ const NewlyAddedProductCard = ({ product, onClick, index }) => (
         <div className="absolute inset-0 bg-gradient-to-r from-white/90 to-orange-50/80 group-hover:from-white/95 group-hover:to-orange-50/90 transition-all duration-500"></div>
         
         <div className="relative z-10">
-          <h3 className="font-bold text-base text-gray-800 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-400 group-hover:to-orange-500 transition-all duration-500 leading-tight line-clamp-2">
+          <h3 className="font-bold text-base text-gray-800 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-orange-600 group-hover:to-orange-600 transition-all duration-500 leading-tight line-clamp-2">
             {product.name}
           </h3>
           
           {/* Enhanced CTA with orange theme */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center text-gray-600 group-hover:text-orange-400 transition-colors duration-500">
+            <div className="flex items-center text-gray-600 group-hover:text-orange-800 transition-colors duration-500">
               <span className="text-sm font-semibold tracking-wide">Explore</span>
               <div className="ml-2 relative">
                 <svg className="w-4 h-4 transform group-hover:translate-x-1 group-hover:scale-110 transition-all duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,7 +220,7 @@ const NewlyAddedProductCard = ({ product, onClick, index }) => (
                 </svg>
               </div>
             </div>
-            <div className="w-2 h-2 bg-orange-300 rounded-full group-hover:bg-orange-400 transition-colors duration-500"></div>
+            <div className="w-2 h-2 bg-orange-500 rounded-full group-hover:bg-orange-600 transition-colors duration-500"></div>
           </div>
         </div>
       </div>
@@ -336,13 +336,13 @@ function CollectionsView() {
                   {/* Sophisticated background with geometric elements */}
                   <div className="absolute inset-0 overflow-hidden">
                     {/* Refined gradient orbs */}
-                    <div className="absolute -top-1/2 -left-1/4 w-96 h-96 bg-gradient-to-br from-orange-300/20 to-orange-400/10 rounded-full blur-3xl animate-pulse"></div>
-                    <div className="absolute -bottom-1/2 -right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-orange-200/15 to-orange-300/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-orange-300/25 to-orange-200/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
+                    <div className="absolute -top-1/2 -left-1/4 w-96 h-96 bg-gradient-to-br from-orange-500/20 to-orange-600/10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute -bottom-1/2 -right-1/4 w-[500px] h-[500px] bg-gradient-to-br from-orange-200/15 to-orange-500/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-orange-500/25 to-orange-200/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '4s'}}></div>
                     
                     {/* Elegant geometric shapes */}
-                    <div className="absolute top-1/4 left-1/6 w-6 h-6 bg-orange-300/40 rounded-lg rotate-45 animate-bounce" style={{animationDelay: '1s'}}></div>
-                    <div className="absolute top-2/3 right-1/4 w-4 h-4 bg-orange-400/30 rounded-full animate-bounce" style={{animationDelay: '3s'}}></div>
+                    <div className="absolute top-1/4 left-1/6 w-6 h-6 bg-orange-500/40 rounded-lg rotate-45 animate-bounce" style={{animationDelay: '1s'}}></div>
+                    <div className="absolute top-2/3 right-1/4 w-4 h-4 bg-orange-600/30 rounded-full animate-bounce" style={{animationDelay: '3s'}}></div>
                     <div className="absolute bottom-1/4 left-2/3 w-3 h-12 bg-orange-200/30 rounded-full animate-bounce" style={{animationDelay: '5s'}}></div>
                   </div>
                   
@@ -351,14 +351,14 @@ function CollectionsView() {
                     <div className="text-center py-12 sm:py-16 lg:py-20 px-4 sm:px-6">
                       {/* Premium badge */}
                       <div className="inline-block mb-6 sm:mb-8 relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-300 to-orange-400 rounded-full blur-lg opacity-30 animate-pulse"></div>
-                        <div className="relative bg-gradient-to-r from-orange-300 to-orange-400 text-white px-6 py-3 rounded-full text-sm font-bold tracking-[0.15em] shadow-xl backdrop-blur-sm">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full blur-lg opacity-30 animate-pulse"></div>
+                        <div className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-full text-sm font-bold tracking-[0.15em] shadow-xl backdrop-blur-sm">
                           ✨ LATEST ARRIVALS
                         </div>
                       </div>
                       
                       {/* Elegant main title */}
-                      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-800 via-orange-400 to-orange-500 tracking-tight leading-none mb-6 sm:mb-8">
+                      <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-800 via-orange-600 to-orange-600 tracking-tight leading-none mb-6 sm:mb-8">
                         {categoryName}
                       </h1>
                       
@@ -408,8 +408,8 @@ function CollectionsView() {
                               key={i}
                               className={`transition-all duration-300 ease-out rounded-full ${
                                 i === activeSlideIndex
-                                  ? 'w-8 h-2 bg-gradient-to-r from-orange-400 to-orange-500 shadow-lg'
-                                  : 'w-2 h-2 bg-orange-300/40 hover:bg-orange-300/60'
+                                  ? 'w-8 h-2 bg-gradient-to-r from-orange-600 to-orange-600 shadow-lg'
+                                  : 'w-2 h-2 bg-orange-500/40 hover:bg-orange-500/60'
                               }`}
                               onClick={() => scrollToSlide(categoryId, i)}
                               aria-label={`Go to slide ${i + 1}`}
