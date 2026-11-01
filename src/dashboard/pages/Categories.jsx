@@ -5,6 +5,61 @@ import { Button, Card, Field, Input, Notice, Page, Select, Spinner, Textarea, us
 
 const BLANK = { id: null, name: "", description: "", parentCategory: "", thumbnail: "" };
 
+const BLANK_TYPE = { id: null, name: "", weight: "" };
+
+const ProductTypes = ({ types, onChanged }) => {
+  const [form, setForm] = useState(null);
+  const { busy, error, run } = useAction();
+
+  const save = (e) => {
+    e.preventDefault();
+    const body = { name: form.name.trim(), defaultWeightGrams: Number(form.weight) };
+    run(async () => {
+      if (form.id) await admin.put(`/product-types/${form.id}`, body);
+      else await admin.post("/product-types", body);
+      setForm(null);
+      await onChanged();
+    });
+  };
+
+  return (
+    <Card
+      title="Product types"
+      className="mt-4"
+      actions={<Button onClick={() => setForm(BLANK_TYPE)}>Add type</Button>}
+    >
+      <Notice>{error}</Notice>
+      {form && (
+        <form onSubmit={save} className="grid sm:grid-cols-3 gap-3 items-end mb-4">
+          <Field label="Name">
+            <Input required maxLength={100} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </Field>
+          <Field label="Standard weight (grams)">
+            <Input type="number" required min="1" step="1" value={form.weight} onChange={(e) => setForm({ ...form, weight: e.target.value })} />
+          </Field>
+          <span className="flex gap-2">
+            <Button type="submit" variant="primary" disabled={busy}>Save</Button>
+            <Button onClick={() => setForm(null)}>Cancel</Button>
+          </span>
+        </form>
+      )}
+      <ul className="divide-y divide-gray-100">
+        {types.map((type) => (
+          <li key={type.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+            <span>
+              {type.name}
+              <span className="ml-2 text-xs text-gray-500">
+                {type.defaultWeightGrams ? `${type.defaultWeightGrams} g` : "No standard weight"}
+              </span>
+            </span>
+            <Button onClick={() => setForm({ id: type.id, name: type.name, weight: String(type.defaultWeightGrams ?? "") })}>Edit</Button>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+};
+
 const Categories = () => {
   const { data, error, loading, reload } = useLoad(() => admin.get("/categories"), []);
   const [form, setForm] = useState(null);
@@ -108,6 +163,7 @@ const Categories = () => {
           </ul>
         )}
       </Card>
+      <ProductTypes types={data?.productTypes ?? []} onChanged={reload} />
     </Page>
   );
 };
