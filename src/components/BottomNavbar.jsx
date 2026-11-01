@@ -286,7 +286,7 @@
 //                                 onClick={() => setShowProfileModal(false)}
 //                                 className="flex items-center px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors duration-300 group"
 //                             >
-//                                 <img src={assets.JustLogo} className="h-6 w-6 mr-3" />
+//                                 <img src={assets.logoMark} className="h-6 w-6 mr-3" />
 //                                 <span className="text-gray-700 group-hover:text-gray-900">About us</span>
 //                             </NavLink>
 
@@ -641,7 +641,7 @@ function BottomNavBar() {
                 path: '/profile'
             },
             {
-                icon: <img src={assets.JustLogo} className="h-5 w-5" />,
+                icon: <img src={assets.logoMark} className="h-5 w-5" />,
                 label: 'About us',
                 path: '/about'
             },
@@ -779,7 +779,7 @@ function BottomNavBar() {
                                             onClick={() => setShowProfileModal(false)}
                                             className="w-full flex items-center px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                                         >
-                                            <img src={assets.JustLogo} className="h-5 w-5 mr-4" />
+                                            <img src={assets.logoMark} className="h-5 w-5 mr-4" />
                                             <span className="text-gray-700">About us</span>
                                         </NavLink>
                                         <NavLink

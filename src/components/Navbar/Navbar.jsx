@@ -26,7 +26,7 @@ function Navbar() {
     <div className=" flex items-center justify-between pt-2 pb-4 font-medium px-10 sticky top-0 bg-white z-50">
       {/* LOGO Icon */}
       <Link to={"/"}>
-        <img src={assets.logo} className="h-10" />
+        <img src={assets.logoName} alt="Monkedition" className="h-10" />
       </Link>
 
       {/* Top Menu Items */}

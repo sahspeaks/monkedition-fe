@@ -54,7 +54,10 @@ import p_img50 from "./p_img50.png";
 import p_img51 from "./p_img51.png";
 import p_img52 from "./p_img52.png";
 
-import logo from "./logo.png";
+import logoName from "./monkedition-name.png";
+import logoNameLight from "./monkedition-name-light.png";
+import logoFull from "./monkedition-full.png";
+import logoMark from "./monkedition-mark.png";
 import cart_icon from "./cart_icon.png";
 import bin_icon from "./bin_icon.png";
 import dropdown_icon from "./dropdown_icon.png";
@@ -79,7 +82,6 @@ import like from "./like.png";
 import unLike from "./unlike.png";
 import payments_options from "./paymentsOptions.png";
 import DefaultUser from "./DefaultUser.png";
-import JustLogo from "./justLogo.png";
 
 import bannerD1 from "./bannerD1.png";
 import bannerD2 from "./bannerD2.png";
@@ -107,8 +109,10 @@ import bannerM11 from "./bannerM11.png";
 import bannerM12 from "./bannerM12.png";
 
 export const assets = {
-  logo,
-  JustLogo,
+  logoName,
+  logoNameLight,
+  logoFull,
+  logoMark,
   cart_icon,
   dropdown_icon,
   exchange_icon,

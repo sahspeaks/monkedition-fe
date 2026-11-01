@@ -1,5 +1,6 @@
 // A printable order receipt. The business is not GST-registered yet, so this
 // says plainly that it is not a tax invoice.
+import { assets } from "../assets/assets";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
@@ -38,7 +39,9 @@ const Receipt = () => {
 
       <header className="flex flex-wrap justify-between gap-4 border-b border-gray-200 pb-4 mb-4">
         <div>
-          <h1 className="text-xl font-semibold">Monkedition</h1>
+          <h1>
+            <img src={assets.logoName} alt="Monkedition" className="h-10 mb-1" />
+          </h1>
           <p className="text-gray-600">monkedition@gmail.com</p>
         </div>
         <div className="text-right">

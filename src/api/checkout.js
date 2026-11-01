@@ -118,6 +118,7 @@ export const payForOrder = async ({ orderNumber, prefill }) => {
       currency: "INR",
       order_id: payment.gatewayOrderId,
       name: "Monkedition",
+      image: `${window.location.origin}/icon-512.png`,
       description: `Order ${orderNumber}`,
       prefill,
       theme: { color: "#FDBA74" },
