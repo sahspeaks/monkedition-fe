@@ -10,9 +10,12 @@ import {
   Images,
   LogOut,
   Mail,
+  MessageSquare,
   Menu,
   Package,
+  RotateCcw,
   ScrollText,
+  Settings as SettingsIcon,
   ShoppingBag,
   Truck,
   Tag,
@@ -32,6 +35,9 @@ import Categories from "./pages/Categories";
 import Sliders from "./pages/Sliders";
 import Promotions from "./pages/Promotions";
 import People from "./pages/People";
+import Returns from "./pages/Returns";
+import Reviews from "./pages/Reviews";
+import Settings from "./pages/Settings";
 import Emails from "./pages/Emails";
 import Alerts from "./pages/Alerts";
 import AuditLog from "./pages/AuditLog";
@@ -39,15 +45,18 @@ import AuditLog from "./pages/AuditLog";
 const NAV = [
   { to: "/dashboard", label: "Overview", icon: Home, end: true },
   { to: "/dashboard/orders", label: "Orders", icon: ShoppingBag },
+  { to: "/dashboard/returns", label: "Returns", icon: RotateCcw },
   { to: "/dashboard/qikink", label: "Qikink orders", icon: Truck },
   { to: "/dashboard/products", label: "Products", icon: Package },
   { to: "/dashboard/inventory", label: "Inventory", icon: Boxes },
   { to: "/dashboard/categories", label: "Categories", icon: FolderTree },
   { to: "/dashboard/sliders", label: "Home sliders", icon: Images },
   { to: "/dashboard/promotions", label: "Promo codes", icon: Tag },
+  { to: "/dashboard/reviews", label: "Reviews", icon: MessageSquare },
   { to: "/dashboard/people", label: "Customers & staff", icon: Users },
   { to: "/dashboard/emails", label: "Emails", icon: Mail },
   { to: "/dashboard/alerts", label: "Alerts", icon: AlertTriangle },
+  { to: "/dashboard/settings", label: "Cash on delivery", icon: SettingsIcon },
   { to: "/dashboard/audit", label: "Activity log", icon: ScrollText },
 ];
 
@@ -136,6 +145,9 @@ const Dashboard = () => {
           <Route path="categories" element={<Categories />} />
           <Route path="sliders" element={<Sliders />} />
           <Route path="promotions" element={<Promotions />} />
+          <Route path="returns" element={<Returns />} />
+          <Route path="reviews" element={<Reviews />} />
+          <Route path="settings" element={<Settings />} />
           <Route path="people" element={<People />} />
           <Route path="emails" element={<Emails />} />
           <Route path="alerts" element={<Alerts />} />

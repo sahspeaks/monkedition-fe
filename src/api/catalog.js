@@ -80,7 +80,11 @@ export const getProduct = async (idOrSlug) => {
       .then((data) => data.items)
       .catch(() => []),
   ]);
-  return toLegacyProduct(detail, recommendations);
+  const reviews = await api
+    .get(`/api/v2/products/${detail.id}/reviews?size=50`, { auth: false })
+    .then((data) => data.items ?? [])
+    .catch(() => []);
+  return toLegacyProduct(detail, recommendations, reviews);
 };
 
 export const getColourImages = async (idOrSlug, colourCode) => {
@@ -115,3 +119,7 @@ export const addToWishlist = async (productId) =>
 export const removeFromWishlist = (productId) => api.delete(`/api/v2/wishlist/items/${productId}`);
 
 export const clearWishlist = () => api.delete("/api/v2/wishlist");
+
+export const getMyReview = (productId) => api.get(`/api/v2/products/${productId}/reviews/mine`);
+export const saveMyReview = (productId, review) =>
+  api.put(`/api/v2/products/${productId}/reviews/mine`, review);

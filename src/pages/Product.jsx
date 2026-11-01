@@ -8,6 +8,7 @@ import { useCartContext } from "../context/CartContext";
 import { useWishlist } from "../context/WhislistContext";
 // UI Components
 import ReviewBox from "../components/ReviewBox";
+import ReviewForm from "../components/ReviewForm";
 import { SizeChartModal } from "../components/SizeChartModal"; // Note: This component is currently commented out in the JSX
 import { ToastContainer, toast } from "react-toastify";
 import { LikeButton, ShareButton } from "../components/icons";
@@ -1009,6 +1010,7 @@ function Product() {
                 </div>
               </div>
               <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
+                <ReviewForm productId={product._id} />
                 {product.reviews?.length > 0 ? (
                   product.reviews.map((review, index) => (
                     <ReviewBox key={index} review={review} />
@@ -1024,7 +1026,7 @@ function Product() {
                     </div>
                     <p className="text-gray-500">No reviews yet</p>
                     <p className="text-sm text-gray-400">
-                      Be the first to review this product
+                      Reviews come from customers whose order has arrived
                     </p>
                   </div>
                 )}

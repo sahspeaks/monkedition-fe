@@ -69,3 +69,6 @@ export const resetPassword = (token, password) =>
 
 export const verifyEmail = (token) =>
   api.post("/api/v2/auth/email/verify", { token }, { auth: false });
+
+export const requestEmailOtp = () => api.post("/api/v2/auth/email/otp", {});
+export const verifyEmailOtp = (code) => api.post("/api/v2/auth/email/otp/verify", { code });

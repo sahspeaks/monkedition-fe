@@ -34,6 +34,8 @@ import {
 } from "./components/PolicyComponents";
 
 import SuccessPage from "./pages/SuccessPage";
+import Receipt from "./pages/Receipt";
+import Unsubscribe from "./pages/Unsubscribe";
 import ScrollToTop from "./components/ScrollTop";
 import Wishlist from "./pages/Wishlist";
 import { WishlistProvider } from "./context/WhislistContext";
@@ -48,7 +50,7 @@ const Dashboard = lazy(() => import("./dashboard/Dashboard"));
 
 // The shop's header and footer, which the dashboard replaces with its own.
 const ShopChrome = ({ children }) =>
-  useLocation().pathname.startsWith("/dashboard") ? null : children;
+  /^\/dashboard|\/receipt$/.test(useLocation().pathname) ? null : children;
 
 const ProtectedRoute = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -120,6 +122,15 @@ function App() {
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
                   <Route path="/orders" element={<Orders />} />
+                  <Route
+                    path="/orders/:orderNumber/receipt"
+                    element={
+                      <ProtectedRoute>
+                        <Receipt />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/unsubscribe" element={<Unsubscribe />} />
                   <Route
                     path="/successPage/:qiKinkOrderId"
                     element={<SuccessPage />}

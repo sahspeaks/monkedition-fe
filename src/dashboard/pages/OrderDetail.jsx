@@ -98,7 +98,12 @@ const OrderDetail = () => {
     <Page
       title={order.orderNumber}
       subtitle={`Placed ${dateTime(order.placedAt)}`}
-      actions={<LinkButton to="/dashboard/orders">All orders</LinkButton>}
+      actions={
+        <>
+          <LinkButton to={`/orders/${order.orderNumber}/receipt?staff=1`}>Receipt</LinkButton>
+          <LinkButton to="/dashboard/orders">All orders</LinkButton>
+        </>
+      }
     >
       <Notice>{actionError || error}</Notice>
       {order.fulfilment?.partnerCancelRequired && (
@@ -141,6 +146,19 @@ const OrderDetail = () => {
               <Row label="Total"><strong>{rupees(order.grandTotal)}</strong></Row>
             </div>
           </Card>
+
+          {order.returns?.length > 0 && (
+            <Card title="Returns" actions={<LinkButton to="/dashboard/returns">Manage returns</LinkButton>}>
+              <ul className="space-y-2 text-sm">
+                {order.returns.map((item) => (
+                  <li key={item.id} className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="min-w-0">{item.items.map((line) => `${line.name} × ${line.quantity}`).join(", ")}</span>
+                    <span className="flex items-center gap-2 whitespace-nowrap">{rupees(item.refund)} <Badge value={item.status} /></span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
           <Card title="History">
             <ol className="space-y-3">

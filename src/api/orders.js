@@ -41,6 +41,7 @@ export const toLegacyOrder = (order) => ({
   },
   cancelReason: order.cancelReason,
   canCancel: order.canCancel ?? false,
+  canReturn: order.canReturn ?? false,
   canPay: order.status === "PENDING_PAYMENT" && order.paymentMethod === "PREPAID",
   subtotal: rupees(order.subtotal),
   discount: rupees(order.discount) ?? 0,
@@ -99,3 +100,30 @@ export const cancelOrder = (orderNumber) =>
     {},
     { headers: { "Idempotency-Key": crypto.randomUUID() } },
   );
+
+export const listReturns = async (orderNumber) =>
+  ((await api.get(`/api/v2/orders/${encodeURIComponent(orderNumber)}/returns`)) ?? {}).items ?? [];
+
+export const requestReturn = (orderNumber, body) =>
+  api.post(`/api/v2/orders/${encodeURIComponent(orderNumber)}/returns`, body, {
+    headers: { "Idempotency-Key": crypto.randomUUID() },
+  });
+
+const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+
+/** Sends one photo straight to Cloudinary, signed by the server for this order. */
+export const uploadReturnPhoto = async (orderNumber, file) => {
+  if (!PHOTO_TYPES.has(file.type)) throw new Error(`${file.name}: use a JPG, PNG, WebP or AVIF image`);
+  if (file.size > 10 * 1024 * 1024) throw new Error(`${file.name}: photos must be 10 MB or smaller`);
+  const { uploadUrl, fields } = await api.post(
+    `/api/v2/orders/${encodeURIComponent(orderNumber)}/returns/photos/sign`,
+    {},
+  );
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.append(key, value);
+  form.append("file", file);
+  const response = await fetch(uploadUrl, { method: "POST", body: form });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(`${file.name}: ${data?.error?.message ?? "upload failed"}`);
+  return data.secure_url;
+};
