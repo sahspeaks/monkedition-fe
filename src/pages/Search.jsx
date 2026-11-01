@@ -72,7 +72,7 @@ function Search() {
   }, [q, attempt]);
 
   // The server already matched the words, so only size and price apply here.
-  const visible = useMemo(() => filterProducts(products, { size, price, q: "" }), [products, size, price]);
+  const visible = useMemo(() => filterProducts(products, { size, price }), [products, size, price]);
   const sizes = useMemo(() => sizesIn(products, size), [products, size]);
   const hasFilters = Boolean(size || price);
 

@@ -34,7 +34,6 @@ export const readFilters = (params, routeCategory, routeSubcategory) => {
     genders: [...new Set([...genders, ...fandoms.map((key) => key.split(":")[0])])],
     size: params.get("size") || null,
     price: parsePrice(params.get("price")),
-    q: params.get("q") ?? "",
   };
 };
 
@@ -66,18 +65,16 @@ export const toggleFandom = (filters, key) => ({
     : [...filters.fandoms, key],
 });
 
-/** The products that pass the size, price and search filters. */
-export const filterProducts = (products, { size, price, q }) => {
-  const query = q.trim().toLowerCase();
-  return products.filter((product) => {
+/** The products that pass the size and price filters. */
+export const filterProducts = (products, { size, price }) =>
+  products.filter((product) => {
     if (size && !product.size?.includes(size)) return false;
     if (price) {
       const amount = Math.floor(Number(product.price));
       if (amount < price[0] || (price.length === 2 && amount > price[1])) return false;
     }
-    return !query || product.name?.toLowerCase().includes(query);
+    return true;
   });
-};
 
 /** The same product can be in two selected fandoms' results. */
 export const uniqueProducts = (products) => [

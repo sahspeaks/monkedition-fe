@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { assets } from "../assets/assets";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ProductItem } from "../components/ProductItem";
 import { useCollections } from "../context/CollectionsContext";
-import { Searchbar } from "../components/Searchbar";
 import { useWishlist } from "../context/WhislistContext";
 import { ToastContainer, toast } from "react-toastify";
 import SizeSelector from "../components/Buttons/SizeSelector";
@@ -76,7 +75,6 @@ function Collection() {
     () => readFilters(params, categoryName, subCategoryName),
     [params, categoryName, subCategoryName],
   );
-  const [searchText, setSearchText] = useState(filters.q);
 
   useEffect(() => {
     fetchCollections();
@@ -133,38 +131,15 @@ function Collection() {
   const visibleProducts = useMemo(() => filterProducts(products, filters), [products, filters]);
   const sizes = useMemo(() => sizesIn(products, filters.size), [products, filters.size]);
 
-  // Read from the address bar itself: a delayed update must not bring back
-  // filters from before it was scheduled.
+  // Read from the address bar itself, so a change never undoes a recent one.
   const updateFilters = (changes) =>
     setParams(withFilters(new URLSearchParams(window.location.search), changes), {
       replace: true,
     });
 
-  // Typing updates the URL once it pauses, so history is not one entry a letter.
-  const sentQuery = useRef(filters.q);
-  useEffect(() => {
-    if (searchText === filters.q) return undefined;
-    const timer = setTimeout(() => {
-      sentQuery.current = searchText;
-      updateFilters({ q: searchText });
-    }, 250);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchText]);
-
-  // The URL changed some other way, such as moving to another category or going
-  // back: the box follows it, so old text is not applied to the new page.
-  useEffect(() => {
-    if (filters.q === sentQuery.current) return;
-    sentQuery.current = filters.q;
-    setSearchText(filters.q);
-  }, [filters.q]);
-
-  const hasRefinements = Boolean(filters.size || filters.price || filters.q);
+  const hasRefinements = Boolean(filters.size || filters.price);
   const clearRefinements = () => {
-    sentQuery.current = "";
-    setSearchText("");
-    updateFilters({ size: null, price: null, q: null });
+    updateFilters({ size: null, price: null });
   };
 
   const handleLikeClick = async (e, itemId) => {
@@ -340,12 +315,6 @@ function Collection() {
           </div>
 
           <ToastContainer />
-
-          <Searchbar
-            searchQuery={searchText}
-            setSearchQuery={setSearchText}
-            filteredProducts={visibleProducts}
-          />
         </div>
 
         <div>{renderProducts()}</div>
