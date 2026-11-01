@@ -125,7 +125,7 @@ const ReturnPolicy = () => {
 
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <p className="text-gray-600">
-          For assistance, email us at store.moonsflare@gmail.com with your name
+          For assistance, email us at monkedition@gmail.com with your name
           and order ID. We're available Monday - Saturday, 11:00 AM to 7:00 PM.
           All queries will be addressed within 24 hours.
         </p>
@@ -269,7 +269,7 @@ const PrivacyPolicy = () => {
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <p className="text-gray-600">
           For questions about our privacy practices, please contact us at
-          store.moonsflare@gmail.com
+          monkedition@gmail.com
         </p>
       </div>
     </PolicyLayout>
@@ -352,7 +352,7 @@ const TermsOfService = () => {
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <p className="text-gray-600">
           For any questions about our terms of service, please contact our
-          support team at store.moonsflare@gmail.com
+          support team at monkedition@gmail.com
         </p>
       </div>
     </PolicyLayout>
