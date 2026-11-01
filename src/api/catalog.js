@@ -123,3 +123,19 @@ export const clearWishlist = () => api.delete("/api/v2/wishlist");
 export const getMyReview = (productId) => api.get(`/api/v2/products/${productId}/reviews/mine`);
 export const saveMyReview = (productId, review) =>
   api.put(`/api/v2/products/${productId}/reviews/mine`, review);
+
+const REVIEW_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+
+/** Sends one photo straight to Cloudinary, signed by the server for this product. */
+export const uploadReviewPhoto = async (productId, file) => {
+  if (!REVIEW_PHOTO_TYPES.has(file.type)) throw new Error(`${file.name}: use a JPG, PNG, WebP or AVIF image`);
+  if (file.size > 10 * 1024 * 1024) throw new Error(`${file.name}: photos must be 10 MB or smaller`);
+  const { uploadUrl, fields } = await api.post(`/api/v2/products/${productId}/reviews/photos/sign`, {});
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.append(key, value);
+  form.append("file", file);
+  const response = await fetch(uploadUrl, { method: "POST", body: form });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(`${file.name}: ${data?.error?.message ?? "upload failed"}`);
+  return data.secure_url;
+};

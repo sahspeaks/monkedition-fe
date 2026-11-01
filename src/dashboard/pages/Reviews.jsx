@@ -40,7 +40,23 @@ const Reviews = () => {
               empty="No reviews yet."
               columns={[
                 { label: "Rating", render: (r) => `${r.rating}/5` },
-                { label: "Comment", render: (r) => <span className="break-words">{r.comment || "—"}</span> },
+                {
+                  label: "Comment",
+                  render: (r) => (
+                    <span className="block min-w-[12rem]">
+                      <span className="break-words">{r.comment || "—"}</span>
+                      {r.photos?.length > 0 && (
+                        <span className="flex gap-2 mt-2">
+                          {r.photos.map((url, index) => (
+                            <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt={`Review photo ${index + 1}`} className="h-12 w-12 rounded object-cover border border-gray-200" />
+                            </a>
+                          ))}
+                        </span>
+                      )}
+                    </span>
+                  ),
+                },
                 { label: "By", render: (r) => r.authorName },
                 { label: "Status", render: (r) => <Badge value={r.status} /> },
                 { label: "Date", render: (r) => <span className="whitespace-nowrap">{dateTime(r.createdAt)}</span> },
