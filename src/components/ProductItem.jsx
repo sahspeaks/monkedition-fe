@@ -23,7 +23,7 @@ export function ProductItem({
 
   return (
     <div
-      className={`group relative ${className} cursor-pointer w-full bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-200 transition-all duration-300  `}
+      className={`group relative ${className} cursor-pointer w-full bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-200 transition-all duration-300  `}
       onClick={onClick}
       id={id}
     >
