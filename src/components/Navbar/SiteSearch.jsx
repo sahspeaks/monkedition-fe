@@ -1,13 +1,20 @@
 // Search across the whole shop, from the navbar. Suggestions appear while
 // typing; Enter opens the full results.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { getProductSuggestions } from "../../api/catalog";
 
 const MIN_LENGTH = 2;
 
-function SiteSearch() {
+/**
+ * @param {{ onPhone?: boolean, triggerClassName?: (active: boolean) => string }} props
+ *   onPhone: opened from the bottom navigation. The box goes at the top of the
+ *   screen, where the phone's keyboard cannot cover it, and stays closed until tapped.
+ */
+function SiteSearch({ onPhone = false, triggerClassName }) {
+  const listId = useId();
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();
@@ -24,6 +31,9 @@ function SiteSearch() {
   const onResults = location.pathname === "/search";
   const searched = onResults ? params.get("q") ?? "" : "";
 
+  // Only the desktop box stays open on the results page.
+  const stayOpen = onResults && !onPhone;
+
   const close = () => {
     setOpen(false);
     setActive(-1);
@@ -37,26 +47,27 @@ function SiteSearch() {
     setStatus("idle");
     setActive(-1);
     if (onResults) setText(searched);
-    setOpen(onResults);
-  }, [location.pathname, location.search, onResults, searched]);
+    setOpen(onResults && !onPhone);
+  }, [location.pathname, location.search, onResults, searched, onPhone]);
 
   // Only when someone opens it: focusing the box on the results page would
   // spread the suggestions over the results.
   useEffect(() => {
-    if (open && !onResults) input.current?.focus();
-  }, [open, onResults]);
+    if (open && (onPhone || !onResults)) input.current?.focus();
+  }, [open, onResults, onPhone]);
 
   useEffect(() => {
     if (!open) return undefined;
     const onClickAway = (e) => {
       if (!box.current?.contains(e.target)) {
         setShowList(false);
-        if (!onResults) close();
+        if (stayOpen) return;
+        close();
       }
     };
     document.addEventListener("mousedown", onClickAway);
     return () => document.removeEventListener("mousedown", onClickAway);
-  }, [open, onResults]);
+  }, [open, stayOpen]);
 
   // A newer word makes older answers irrelevant, however late they arrive.
   useEffect(() => {
@@ -100,7 +111,7 @@ function SiteSearch() {
   const onKeyDown = (e) => {
     if (e.key === "Escape") {
       setShowList(false);
-      if (!onResults) close();
+      if (!stayOpen) close();
     } else if (e.key === "ArrowDown" && suggestions.length) {
       e.preventDefault();
       setActive((index) => (index + 1) % suggestions.length);
@@ -121,18 +132,23 @@ function SiteSearch() {
 
   if (!open) {
     return (
-      <button type="button" aria-label="Search products" onClick={() => setOpen(true)} className="flex items-center">
-        <Search className="w-5 h-5 text-gray-700" aria-hidden="true" />
+      <button
+        type="button"
+        aria-label="Search products"
+        onClick={() => setOpen(true)}
+        className={triggerClassName ? triggerClassName(onResults) : "flex items-center"}
+      >
+        <Search className={onPhone ? "w-6 h-6" : "w-5 h-5 text-gray-700"} aria-hidden="true" />
       </button>
     );
   }
 
   const listVisible = showList && query.length >= MIN_LENGTH;
 
-  return (
+  const panel = (
     <div
       ref={box}
-      className="absolute left-4 right-4 top-full mt-1 z-30 sm:static sm:mt-0 sm:w-64 lg:w-80 sm:relative"
+      className={onPhone ? "fixed left-4 right-4 top-16 z-[60]" : "relative w-64 lg:w-80"}
     >
       <form onSubmit={submit} role="search" className="flex items-center gap-2 border border-gray-300 rounded-full bg-white px-3 py-1.5">
         <Search className="w-4 h-4 shrink-0 text-gray-500" aria-hidden="true" />
@@ -145,8 +161,8 @@ function SiteSearch() {
           role="combobox"
           aria-label="Search products"
           aria-expanded={listVisible}
-          aria-controls="site-search-results"
-          aria-activedescendant={active >= 0 ? `site-search-${active}` : undefined}
+          aria-controls={listId}
+          aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
           placeholder="Search products"
           onChange={(e) => {
             setText(e.target.value);
@@ -162,7 +178,7 @@ function SiteSearch() {
           onClick={() => {
             setText("");
             setShowList(false);
-            if (onResults) input.current?.focus();
+            if (stayOpen) input.current?.focus();
             else close();
           }}
         >
@@ -172,7 +188,7 @@ function SiteSearch() {
 
       {listVisible && (
         <div
-          id="site-search-results"
+          id={listId}
           role="listbox"
           aria-label="Suggestions"
           className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden font-normal"
@@ -180,7 +196,7 @@ function SiteSearch() {
           {suggestions.map((item, index) => (
             <button
               key={item._id}
-              id={`site-search-${index}`}
+              id={`${listId}-${index}`}
               type="button"
               role="option"
               aria-selected={index === active}
@@ -214,6 +230,10 @@ function SiteSearch() {
       )}
     </div>
   );
+
+  // The bottom navigation blurs its background, which would trap a fixed panel
+  // inside it, so the phone's panel renders at the top of the page instead.
+  return onPhone ? createPortal(panel, document.body) : panel;
 }
 
 export default SiteSearch;

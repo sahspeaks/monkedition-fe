@@ -108,7 +108,7 @@ function Search() {
   );
 
   const results = () => {
-    if (!q) return notice("Type in the search box to find products.");
+    if (!q) return notice("Use the search button to find products.");
     if (loading) return <Skeleton />;
     if (failed) return notice("We could not search right now.", action("Try again", () => setAttempt((n) => n + 1)));
     if (products.length === 0) {
@@ -140,7 +140,7 @@ function Search() {
   const box = `border border-gray-300 pl-5 py-3 mt-6 ${showFilter ? "" : "hidden"} sm:block`;
 
   return (
-    <div className="min-h-screen flex flex-col sm:flex-row gap-1 sm:gap-10 border-t p-5 pt-16 sm:pt-5">
+    <div className="min-h-screen flex flex-col sm:flex-row gap-1 sm:gap-10 border-t p-5">
       <ToastContainer />
       {products.length > 0 && (
         <div className="min-w-60 sm:w-[28%]">

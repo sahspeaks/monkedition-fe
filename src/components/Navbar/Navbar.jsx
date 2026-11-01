@@ -34,7 +34,9 @@ function Navbar() {
 
       {/* Right side */}
       <div className="flex items-center gap-6">
-        <SiteSearch />
+        <div className="hidden sm:block">
+          <SiteSearch />
+        </div>
         {/* Profile Icon with Dropdown - Desktop */}
         <div className="hidden sm:block group relative">
           {user ? (
