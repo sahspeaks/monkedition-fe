@@ -370,17 +370,43 @@ const useServerCart = (user, navigate, enabled) => {
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [cartV2, setCartV2] = useState(false);
+  // null until the server says which cart this visitor has.
+  const [cartV2, setCartV2] = useState(null);
+  const flags = useRef(null);
 
   useEffect(() => {
-    cartApi.getFlags().then((flags) => setCartV2(Boolean(flags.cartV2)));
+    let stale = false;
+    const request = cartApi.getFlags();
+    flags.current = request;
+    request.then((result) => {
+      if (!stale) setCartV2(Boolean(result.cartV2));
+    });
+    return () => {
+      stale = true;
+    };
   }, [user?._id]);
 
   // Both hooks always run (rules of hooks); only one backs the context.
   const local = useLocalCart(user, navigate);
-  const server = useServerCart(user, navigate, cartV2);
-  const value = cartV2 ? server : local;
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  const server = useServerCart(user, navigate, cartV2 === true);
+  const carts = useRef({ local, server });
+  carts.current = { local, server };
+
+  // Until then the shop shows the server cart as loading, and an item added in
+  // that moment waits for the answer instead of going into the wrong cart.
+  const value = cartV2 === false ? local : server;
+  const addToCart = async (...item) => {
+    const { cartV2: isServerCart } = await flags.current;
+    return carts.current[isServerCart ? "server" : "local"].addToCart(...item);
+  };
+
+  return (
+    <CartContext.Provider
+      value={{ ...value, addToCart, isLoading: cartV2 === null || value.isLoading }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 };
 
 export const useCartContext = () => {

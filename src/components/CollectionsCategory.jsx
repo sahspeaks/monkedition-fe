@@ -7,33 +7,16 @@ import {  useNavigate } from 'react-router-dom';
 
 const CollectionsCategory = () => {
   const [activeTab, setActiveTab] = useState('Men');
-  const [isLoading, setIsLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState(null);
-  const [cachedCollections, setCachedCollections] = useState({});
   const [animateCards, setAnimateCards] = useState(false);
 
-  const { CollectionsData, fetchCollections } = useCollections();
+  const { CollectionsData: cachedCollections, fetchCollections, error } = useCollections();
+  const isLoading = Object.keys(cachedCollections).length === 0 && !error;
   const tabs = ["Men", "Women"];
   const navigate = useNavigate(); 
-  // Initial data loading
   useEffect(() => {
-    const storedCollections = sessionStorage.getItem("collectionsData");
-    if (storedCollections) {
-      setCachedCollections(JSON.parse(storedCollections));
-      setIsLoading(false);
-    } else if (!CollectionsData) {
-      fetchCollections();
-    }
-  }, [fetchCollections, CollectionsData]);
-
-  // Cache collections data
-  useEffect(() => {
-    if (CollectionsData) {
-      sessionStorage.setItem("collectionsData", JSON.stringify(CollectionsData));
-      setCachedCollections(CollectionsData);
-      setIsLoading(false);
-    }
-  }, [CollectionsData]);
+    fetchCollections();
+  }, [fetchCollections]);
 
   // Trigger card animations on tab change
   useEffect(() => {

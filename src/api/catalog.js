@@ -58,12 +58,27 @@ const findSubcategory = (tree, categoryParam, subcategoryParam) => {
   return candidates.find((child) => matches(child, subcategoryParam)) ?? null;
 };
 
-export const getProductsInSubcategory = async (categoryParam, subcategoryParam) => {
+// Just long enough that going back to a list is instant. In memory only and
+// successes only, so a failure is never remembered and prices stay current.
+const LIST_MEMORY_MS = 60_000;
+const listMemory = new Map();
+
+const loadSubcategory = async (categoryParam, subcategoryParam) => {
   const tree = await getCategoryTree();
   const sub = findSubcategory(tree, categoryParam, subcategoryParam);
   if (!sub) return [];
   const byId = await categoriesById();
   return (await allPages(`/api/v2/categories/${sub.slug}/products`)).map((item) => toLegacyListItem(item, byId));
+};
+
+export const getProductsInSubcategory = (categoryParam, subcategoryParam) => {
+  const key = `${categoryParam}/${subcategoryParam}`;
+  const remembered = listMemory.get(key);
+  if (remembered && Date.now() - remembered.at < LIST_MEMORY_MS) return remembered.list;
+  const list = loadSubcategory(categoryParam, subcategoryParam);
+  listMemory.set(key, { at: Date.now(), list });
+  list.catch(() => listMemory.delete(key));
+  return list;
 };
 
 export const getAllProducts = async () => {
@@ -84,7 +99,12 @@ export const getProduct = async (idOrSlug) => {
     .get(`/api/v2/products/${detail.id}/reviews?size=50`, { auth: false })
     .then((data) => data.items ?? [])
     .catch(() => []);
-  return toLegacyProduct(detail, recommendations, reviews);
+  const product = toLegacyProduct(detail, recommendations, reviews);
+  // The breadcrumb links to the category, whose address needs its parent.
+  const byId = await categoriesById().catch(() => new Map());
+  const parent = byId.get(byId.get(detail.category?.id)?.parentId);
+  if (product.category && parent) product.category.parentCategory = { name: parent.name };
+  return product;
 };
 
 export const getColourImages = async (idOrSlug, colourCode) => {

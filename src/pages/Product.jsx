@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { assets } from "../assets/assets";
 // Contexts for global state management
 import { colorMap, useCollections } from "../context/CollectionsContext";
+import { getProduct } from "../api/catalog";
 import { useCartContext } from "../context/CartContext";
 import { useWishlist } from "../context/WhislistContext";
 // UI Components
@@ -18,6 +19,78 @@ import { ProductItem } from "../components/ProductItem";
 // Defines the sections for the product's bottom panel (Description, Additional Information, Reviews)
 const bottomSection = ["Description", "Additional Information", "Reviews"];
 
+// Colours a white tick would not show on.
+const LIGHT_COLOURS = new Set(["Wh", "Yl", "Ph", "Be", "Mnt", "LBp", "Lv", "Gm", "NYI", "SG", "Mh"]);
+
+const ColorSelector = ({ colors = [], selectedColor, onColorSelect }) => {
+
+  const handleKeyDown = (event, colorCode) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onColorSelect(colorCode);
+    }
+  };
+
+  return (
+    <div>
+      <p className="mt-5 text-gray-700 font-medium md:w-4/5">Select Color</p>
+      <div className="flex gap-4 my-4 flex-wrap">
+        {colors.map((colorCode) => (
+          <div key={colorCode} className="relative group">
+            <button
+              onClick={() => onColorSelect(colorCode)}
+              onKeyDown={(e) => handleKeyDown(e, colorCode)}
+              className={`
+              border h-10 w-10 ${colorMap[colorCode]} rounded-md 
+              transition-all duration-200 ease-in-out
+              transform hover:scale-110 hover:shadow-lg
+            
+              ${
+                selectedColor === colorCode
+                  ? "ring-2 ring-orange-300 border-orange-400 shadow-lg"
+                  : "border-gray-200 hover:border-gray-400"
+              }
+              ${LIGHT_COLOURS.has(colorCode) ? "border-gray-300" : ""}
+              relative overflow-hidden
+            `}
+              aria-label={`Select color ${colorCode}`}
+              aria-pressed={selectedColor === colorCode}
+              title={colorCode}
+            >
+              {/* Selection indicator */}
+              {selectedColor === colorCode && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg
+                    className={`w-4 h-4 ${
+                      LIGHT_COLOURS.has(colorCode)
+                        ? "text-gray-800"
+                        : "text-white"
+                    } drop-shadow-sm`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m4.5 12.75 6 6 9-13.5"
+                    />
+                  </svg>
+                </div>
+              )}
+
+              {/* Hover effect overlay */}
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-200 rounded-md" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
 /**
  * Product Component
  *
@@ -30,8 +103,7 @@ function Product() {
   // Hooks for navigation, route parameters, and context API
   const navigate = useNavigate();
   const { productId } = useParams(); // Extracts product ID from the URL
-  const { fetchSpecificProduct, calculateReview, fetchProductColorImages } =
-    useCollections(); // Custom hook for collection-related data
+  const { calculateReview } = useCollections();
   const { addToCart } = useCartContext(); // Custom hook for cart management
   const {
     wishlistItems = [], // Destructure wishlist items, providing an empty array as a fallback
@@ -48,7 +120,8 @@ function Product() {
   const [isModalOpen, setIsModalOpen] = useState(false); // Controls visibility of the SizeChartModal
   const [relatedProducts, setRelatedProducts] = useState([]); // Stores related products
   const [colorImages, setColorImages] = useState([]); // Images for selected color
-  const [loadingColorImages, setLoadingColorImages] = useState(false);
+  const [loadError, setLoadError] = useState(null); // "missing" or "failed"
+  const [attempt, setAttempt] = useState(0);
 
   const [selectedBottomSection, setSelectedBottomSection] = useState(
     bottomSection[0]
@@ -75,69 +148,32 @@ function Product() {
     setIsImageModalOpen(true); // Open the image view modal
   };
 
-  /**
-   * Handles the selection of a product color, and updates the main displayed image accordingly.
-   * @param {string} colorCode - The code of the selected color.
-   */
-  const handleColorSelect = async (colorCode, productImage) => {
-    if (colorCode === selectedColor) return; // Don't fetch if same color is selected
-
-    setSelectedColor(colorCode);
-    setLoadingColorImages(true);
-
-    try {
-      const result = await fetchProductColorImages(productId, colorCode);
-
-      if (result.success && result.images && result.images.length > 0) {
-        setColorImages(result.images);
-        setImage(result.images[0]); // Set first image as main image
-      } else {
-        setColorImages([productImage]);
-        setImage(productImage); // Set product image as main image
-        // console.log("Failed to fetch color images", product.image);
-      }
-    } catch (error) {
-      setColorImages([productImage]);
-      setImage(productImage);
-      console.error("Error fetching color images:", error);
-    } finally {
-      setLoadingColorImages(false);
-    }
+  /** The images for a colour; a colour without its own shows the product's. */
+  const imagesFor = (item, colorCode) => {
+    const own = item.colorImages?.find((entry) => entry.color === colorCode)?.images;
+    return own?.length ? own : [item.image, ...(item.addImages ?? [])].filter(Boolean);
   };
 
-  /**
-   * Fetches product data from the backend based on the `productId` from URL parameters.
-   * Sets product details, initial image, selected color, and calculates review scores.
-   */
-  const fetchProductData = async () => {
-    setIsLoading(true); // Set loading to true before fetching
-    try {
-      const response = await fetchSpecificProduct(productId);
-      const data = await response;
-      setProduct(data);
-      await handleColorSelect(data.color[0], data.image);
+  const showColor = (item, colorCode) => {
+    const images = imagesFor(item, colorCode);
+    setSelectedColor(colorCode);
+    setColorImages(images);
+    setImage(images[0] ?? "");
+  };
 
-      setRelatedProducts(response.recommendations);
-      console.log(data);
-      // Set initial color
-      // Auto-select the first available color and try to find a matching image
-      if (data.color && data.color.length > 0) {
-        const firstColor = data.color[0];
-        setSelectedColor(firstColor);
-      }
+  /** Whether this size can be bought in this colour. */
+  const isAvailable = (colorCode, sizeName) => {
+    if (!product.variants?.length) return product.stock > 0;
+    return product.variants.some(
+      (variant) =>
+        variant.colour?.code === colorCode && variant.size === sizeName && variant.available,
+    );
+  };
 
-      // Calculate and set overall review scores
-      const reviewScore = calculateReview(data);
-      setOverAllReview([
-        Math.max(0, Math.min(5, reviewScore[0] || 0)), // Clamp score between 0 and 5
-        Math.max(0, Math.min(5, reviewScore[1] || 0)), // Clamp score between 0 and 5
-      ]);
-    } catch (error) {
-      console.error("Failed to fetch product data:", error);
-      toast.error("Failed to load product data.");
-    } finally {
-      setIsLoading(false); // Set loading to false after fetching
-    }
+  const handleColorSelect = (colorCode) => {
+    if (colorCode === selectedColor) return;
+    showColor(product, colorCode);
+    if (size && !isAvailable(colorCode, size)) setSize("");
   };
 
   /**
@@ -171,103 +207,6 @@ function Product() {
   };
 
   /**
-   * Helper component for selecting product colors.
-   * @param {Object} props - Component props.
-   * @param {string[]} props.colors - Array of color codes.
-   * @param {string} props.selectedColor - The currently selected color code.
-   * @param {function} props.onColorSelect - Callback function when a color is selected.
-   * @returns {JSX.Element} The ColorSelector component.
-   */
-  // const ColorSelector = ({ colors = [], selectedColor, onColorSelect }) => (
-  //   <div>
-  //     <p className="mt-5 text-gray-500 md:w-4/5">Select Color</p>
-  //     <div className="flex gap-4 my-4">
-  //       {colors.map((colorCode) => (
-  //         <button
-  //           key={colorCode}
-  //           onClick={() => onColorSelect(colorCode)}
-  //           // Dynamically apply background color and ring based on selection
-  //           className={`border h-10 w-10 ${colorMap[colorCode]} rounded-md ${selectedColor === colorCode ? "ring-2 ring-orange-300" : ""
-  //             }`}
-  //           aria-label={`Select color ${colorCode}`}
-  //         />
-  //       ))}
-  //     </div>
-  //   </div>
-  // );
-
-  const ColorSelector = ({ colors = [], selectedColor, onColorSelect }) => {
-    const [hoveredColor, setHoveredColor] = useState(null);
-
-    const handleKeyDown = (event, colorCode) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onColorSelect(colorCode);
-      }
-    };
-
-    return (
-      <div>
-        <p className="mt-5 text-gray-700 font-medium md:w-4/5">Select Color</p>
-        <div className="flex gap-4 my-4 flex-wrap">
-          {colors.map((colorCode) => (
-            <div key={colorCode} className="relative group">
-              <button
-                onClick={() => onColorSelect(colorCode)}
-                onKeyDown={(e) => handleKeyDown(e, colorCode)}
-                onMouseEnter={() => setHoveredColor(colorCode)}
-                onMouseLeave={() => setHoveredColor(null)}
-                className={`
-                border h-10 w-10 ${colorMap[colorCode]} rounded-md 
-                transition-all duration-200 ease-in-out
-                transform hover:scale-110 hover:shadow-lg
-              
-                ${
-                  selectedColor === colorCode
-                    ? "ring-2 ring-orange-300 border-orange-400 shadow-lg"
-                    : "border-gray-200 hover:border-gray-400"
-                }
-                ${colorCode === "white" ? "border-gray-300" : ""}
-                relative overflow-hidden
-              `}
-                aria-label={`Select color ${colorCode}`}
-                aria-pressed={selectedColor === colorCode}
-                title={colorCode}
-              >
-                {/* Selection indicator */}
-                {selectedColor === colorCode && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg
-                      className={`w-4 h-4 ${
-                        colorCode === "white" || colorCode === "yellow"
-                          ? "text-gray-800"
-                          : "text-white"
-                      } drop-shadow-sm`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      strokeWidth={3}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
-                  </div>
-                )}
-
-                {/* Hover effect overlay */}
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-200 rounded-md" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
-  /**
    * Determines and returns the stock status message and styling.
    * @param {number} stock - The current stock quantity of the product.
    * @returns {JSX.Element} A styled span indicating the stock status.
@@ -284,11 +223,14 @@ function Product() {
     }
   }
 
+  const isSoldOut = product.stock <= 0;
+
   /**
    * Handles the "Buy Now" action. Validates size and color,
    * creates a cart summary, and navigates to the place order page.
    */
   const handleBuyNow = () => {
+    if (isSoldOut) return;
     if (!size) {
       toast.warn("Please select a size.");
       return;
@@ -342,6 +284,7 @@ function Product() {
    * then calls the `addToCart` function from the CartContext.
    */
   const handleAddToCart = async () => {
+    if (isSoldOut) return;
     if (!size) {
       toast.warn("Please select a size.");
       return;
@@ -401,10 +344,47 @@ function Product() {
 
   // --- Effects ---
 
-  // Effect to fetch product data when productId changes
+  // Every product starts clean, and a slow response for the previous product
+  // can never replace the one on screen.
   useEffect(() => {
-    fetchProductData();
-  }, [productId]); // Dependency array includes productId to re-fetch on product change
+    let stale = false;
+    setIsLoading(true);
+    setLoadError(null);
+    setSize("");
+    setSelectedColor("");
+    setColorImages([]);
+    setImage("");
+    setSelectedBottomSection(bottomSection[0]);
+    getProduct(productId)
+      .then((data) => {
+        if (stale) return;
+        setProduct(data);
+        setRelatedProducts(data.recommendations);
+        // Open on a colour that can be bought, when there is one.
+        const firstColor =
+          data.color?.find((code) =>
+            data.variants?.some((variant) => variant.colour?.code === code && variant.available),
+          ) ?? data.color?.[0];
+        showColor(data, firstColor);
+        const reviewScore = calculateReview(data);
+        setOverAllReview([
+          Math.max(0, Math.min(5, reviewScore[0] || 0)), // Clamp score between 0 and 5
+          Math.max(0, Math.min(5, reviewScore[1] || 0)), // Clamp score between 0 and 5
+        ]);
+      })
+      .catch((error) => {
+        if (stale) return;
+        console.error("Failed to fetch product data:", error);
+        setLoadError(error.status === 404 ? "missing" : "failed");
+      })
+      .finally(() => {
+        if (!stale) setIsLoading(false);
+      });
+    return () => {
+      stale = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, attempt]);
 
   // Effect to initialize `allImages` array and `currentImageIndex` when product or main image changes
   useEffect(() => {
@@ -418,7 +398,7 @@ function Product() {
         setCurrentImageIndex(currentIndex);
       }
     }
-  }, [product, image]); // Depend on product and current image
+  }, [product, image, colorImages]);
 
   // --- Image Gallery Navigation Functions ---
 
@@ -592,6 +572,27 @@ function Product() {
     return <ProductSkeleton />;
   }
 
+  if (loadError) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-gray-700 text-lg">
+          {loadError === "missing"
+            ? "This product is no longer available."
+            : "We could not load this product."}
+        </p>
+        {loadError === "missing" ? (
+          <button type="button" onClick={() => navigate("/")} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-300 text-black">
+            Back to home
+          </button>
+        ) : (
+          <button type="button" onClick={() => setAttempt((count) => count + 1)} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-300 text-black">
+            Try again
+          </button>
+        )}
+      </div>
+    );
+  }
+
   // --- Main Product Display ---
   return (
     <div className="border-t-2 pt-10 px-6 transition-opacity ease-in duration-500 opacity-100">
@@ -601,18 +602,22 @@ function Product() {
           Home
         </button>
         <span>/</span>
-        <button
-          onClick={() =>
-            navigate(
-              `/collection/${OriginalToSlug(
-                product?.category?.parentCategory?.name
-              )}/${OriginalToSlug(product?.category?.name)}`
-            )
-          }
-          className="hover:text-gray-900 capitalize line-clamp-1"
-        >
-          {product?.category?.name}
-        </button>
+        {product?.category?.parentCategory?.name ? (
+          <button
+            onClick={() =>
+              navigate(
+                `/collection/${OriginalToSlug(
+                  product.category.parentCategory.name
+                )}/${OriginalToSlug(product.category.name)}`
+              )
+            }
+            className="hover:text-gray-900 capitalize line-clamp-1"
+          >
+            {product.category.name}
+          </button>
+        ) : (
+          <span className="capitalize line-clamp-1">{product?.category?.name}</span>
+        )}
         <span>/</span>
         <span className="text-gray-900 line-clamp-1">{product?.name}</span>
       </div>
@@ -621,20 +626,7 @@ function Product() {
       <div className="flex-1  flex flex-col gap-2 md:flex-row">
         {/* Enhanced Image Gallery Section */}
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-[60vw] xl:w-[50vw] ">
-          {loadingColorImages ? (
-            <>
-              <div className="hidden sm:flex sm:flex-col w-[10vw] gap-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="w-full h-20 bg-gray-200 rounded" />
-                ))}
-              </div>
-              {/* Main image Skeleton */}
-              <div className="w-full sm:w-[60%">
-                <div className="w-full aspect-square sm:h-[500px]  bg-gray-200 rounded" />
-              </div>
-            </>
-          ) : (
-            <>
+          <>
               {/* Main Product Image with Navigation */}
               <div className="relative w-full md:w-[70%]   md:h-[50vh] lg:h-[90vh] overflow-hidden order-1 md:order-2 cursor-pointer group">
                 <img
@@ -740,8 +732,7 @@ function Product() {
                   />
                 ))}
               </div>
-            </>
-          )}
+          </>
 
           {/* Image View Modal (full-screen image viewer) */}
           <ImageViewModal
@@ -804,19 +795,28 @@ function Product() {
               Please refer to size chart from images for accurate measurements
             </p>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 my-2 p-2 rounded-md">
-              {product?.size?.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSize(item)}
-                  className={`border bg-gray-100 py-2 px-4 rounded-md text-center text-sm transition-all duration-200 hover:bg-gray-200  ${
-                    item === size
-                      ? "ring-2 ring-orange-300 text-black font-bold bg-orange-50"
-                      : "font-light"
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
+              {product?.size?.map((item) => {
+                const available = isAvailable(selectedColor, item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    disabled={!available}
+                    aria-pressed={item === size}
+                    title={available ? undefined : "Sold out in this colour"}
+                    onClick={() => setSize(item)}
+                    className={`border bg-gray-100 py-2 px-4 rounded-md text-center text-sm transition-all duration-200 ${
+                      !available
+                        ? "opacity-40 line-through cursor-not-allowed"
+                        : item === size
+                          ? "ring-2 ring-orange-300 text-black font-bold bg-orange-50"
+                          : "font-light"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Color selection using the reusable ColorSelector component */}
@@ -832,14 +832,16 @@ function Product() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleBuyNow}
-                  className="text-black w-full sm:w-auto px-8 py-3 text-sm active:bg-gray-700 bg-orange-300 rounded-md hover:bg-orange-400 transition-colors"
+                  disabled={isSoldOut}
+                  className="text-black w-full sm:w-auto px-8 py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-700 bg-orange-300 rounded-md hover:bg-orange-400 transition-colors"
                 >
-                  BUY NOW
+                  {isSoldOut ? "SOLD OUT" : "BUY NOW"}
                 </button>
 
                 <button
                   onClick={handleAddToCart}
-                  className="bg-black w-full sm:w-auto text-white px-8 py-3 text-sm active:bg-gray-700 rounded-md hover:bg-gray-800 transition-colors"
+                  disabled={isSoldOut}
+                  className="bg-black w-full sm:w-auto text-white px-8 py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-700 rounded-md hover:bg-gray-800 transition-colors"
                 >
                   ADD TO CART
                 </button>
@@ -1052,7 +1054,7 @@ function Product() {
                 colors={item.color || []}
                 like={isItemInWishlist(item._id)}
                 onLikeClick={(e) => handleLikeClick(e, item._id)}
-                // onClick={() => handleProductClick(item._id)}
+                onClick={() => navigate(`/product/${item._id}`)}
               />
             </div>
           ))}

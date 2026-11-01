@@ -78,11 +78,7 @@ const Wishlist = () => {
     }
   };
   const handleProductClick = (productId) => {
-    // Save current path before navigation
-    // console.log("Current path:", location.pathname);
-    sessionStorage.setItem("previousPath", "/product/");
     navigate(`/product/${productId}`);
-    // Our current state is already saved in sessionStorage, so we can safely navigate
   };
   if (currentItems.length === 0) {
     return (
