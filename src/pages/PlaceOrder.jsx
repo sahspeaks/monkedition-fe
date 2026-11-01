@@ -554,6 +554,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toLocalMobile } from "../utils/phone";
 import { useAuth } from "../context/NewAuthContext";
 import { api } from "../api/client";
+import { requestEmailOtp, verifyEmailOtp } from "../api/auth";
 import { rupees } from "../api/adapters";
 import {
   checkoutErrorMessage,
@@ -584,7 +585,7 @@ import CartTotal from "../components/CartTotal";
 const PlaceOrder = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, fetchUser } = useAuth();
   const { clearCart } = useCartContext();
   const cartSummary = location.state?.cartSummary;
   const isBuyNow = location.state?.isBuyNow;
@@ -596,6 +597,7 @@ const PlaceOrder = () => {
   const [isRazorpayLoaded, setIsRazorpayLoaded] = useState(false);
   const [CODFee, setCODFee] = useState(50);
   const [checkoutV2, setCheckoutV2] = useState(false);
+  const [otp, setOtp] = useState(null); // null, or { code, sent, busy, error }
   const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState(null);
   const [promoError, setPromoError] = useState(null);
@@ -1073,6 +1075,39 @@ const PlaceOrder = () => {
     checkoutV2Enabled().then(setCheckoutV2);
   }, []);
 
+  // COD needs a verified email: the code proves it once for the account.
+  const sendOtp = async () => {
+    setOtp((current) => ({ ...current, busy: true, error: "" }));
+    try {
+      const { alreadyVerified } = await requestEmailOtp();
+      if (alreadyVerified) {
+        await fetchUser();
+        setOtp(null);
+        return;
+      }
+      setOtp((current) => ({ ...current, busy: false, sent: true }));
+    } catch (error) {
+      setOtp((current) => ({ ...current, busy: false, error: error.message || "Could not send the code." }));
+    }
+  };
+
+  const confirmOtp = async () => {
+    setOtp((current) => ({ ...current, busy: true, error: "" }));
+    try {
+      await verifyEmailOtp(otp.code.trim());
+      await fetchUser();
+      setOtp(null);
+      setError(null);
+    } catch (error) {
+      const invalid = error.body?.errors?.[0]?.path === "code";
+      setOtp((current) => ({
+        ...current,
+        busy: false,
+        error: invalid ? "That code is wrong or has expired." : error.message || "Could not check the code.",
+      }));
+    }
+  };
+
   const applyPromo = async () => {
     setPromoError(null);
     if (!formData.pincode.trim()) {
@@ -1108,6 +1143,11 @@ const PlaceOrder = () => {
 
   const placeOnV2 = async () => {
     const method = paymentMethod === "COD" ? "COD" : "PREPAID";
+    if (method === "COD" && user?.emailVerified === false) {
+      setOtp({ code: "", sent: false, busy: false, error: "" });
+      setIsLoading(false);
+      return;
+    }
     try {
       const addressId = await ensureAddress(formData);
       const quote = await quoteItems(
@@ -1180,7 +1220,11 @@ const PlaceOrder = () => {
       });
       razorpay.open();
     } catch (error) {
-      setError(checkoutErrorMessage(error));
+      if (error.code === "COD_EMAIL_NOT_VERIFIED") {
+        setOtp({ code: "", sent: false, busy: false, error: "" });
+      } else {
+        setError(checkoutErrorMessage(error));
+      }
       setIsLoading(false);
     }
   };
@@ -1647,6 +1691,42 @@ const PlaceOrder = () => {
             <div className="flex justify-center items-center ">
               <img src={assets.payments_options} alt="" className="h-20 w-40" />
             </div>
+
+            {otp && paymentMethod === "COD" && (
+              <div className="mt-4 p-4 border border-orange-200 bg-orange-50 rounded-lg space-y-2 text-sm">
+                <p className="font-medium text-gray-900">Verify your email to pay on delivery</p>
+                {!otp.sent ? (
+                  <>
+                    <p className="text-gray-700">We will email a 6-digit code to {user?.email}. You only need to do this once.</p>
+                    <button type="button" disabled={otp.busy} onClick={sendOtp} className="px-4 py-2 rounded bg-orange-300 text-black disabled:opacity-50">
+                      {otp.busy ? "Sending..." : "Send code"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-700">Enter the code we emailed to {user?.email}. Check your spam folder if you do not see it.</p>
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        aria-label="Verification code"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={6}
+                        value={otp.code}
+                        onChange={(e) => setOtp({ ...otp, code: e.target.value.replace(/\D/g, "") })}
+                        className="w-32 border border-gray-300 rounded px-3 py-2"
+                      />
+                      <button type="button" disabled={otp.busy || otp.code.length !== 6} onClick={confirmOtp} className="px-4 py-2 rounded bg-orange-300 text-black disabled:opacity-50">
+                        Verify
+                      </button>
+                      <button type="button" disabled={otp.busy} onClick={sendOtp} className="px-4 py-2 rounded border border-gray-300 disabled:opacity-50">
+                        Send again
+                      </button>
+                    </div>
+                  </>
+                )}
+                {otp.error && <p role="alert" className="text-xs text-red-600">{otp.error}</p>}
+              </div>
+            )}
 
             <button
               type="submit"

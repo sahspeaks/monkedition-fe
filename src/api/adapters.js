@@ -35,10 +35,15 @@ export const toLegacyListItem = (item, categoriesById) => {
 };
 
 /** A v2 product detail (plus its recommendations) as a v1 product. */
-export const toLegacyProduct = (detail, recommendations = []) => ({
+export const toLegacyProduct = (detail, recommendations = [], reviews = []) => ({
   ...toLegacyListItem(detail),
   // The server gives a count only when it is low; otherwise any large number
   // reads as "In Stock".
+  reviews: reviews.map((review) => ({
+    rating: review.rating,
+    comment: review.comment,
+    user: { firstName: review.authorName },
+  })),
   stock: detail.inStock ? detail.unitsLeft ?? Number.MAX_SAFE_INTEGER : 0,
   weightGrams: detail.weightGrams ?? null,
   description: detail.description ?? "",

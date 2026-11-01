@@ -4,7 +4,8 @@ import { Package, ChevronDown, ChevronUp, MapPin, Truck } from "lucide-react";
 import { Title } from "../components/Title";
 import { useCartContext } from "../context/CartContext";
 import { checkoutV2Enabled } from "../api/checkout";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import OrderReturns from "../components/OrderReturns";
 import { payForOrder } from "../api/checkout";
 import { cancelOrder, fetchMyOrders, paymentLabel } from "../api/orders";
 
@@ -290,6 +291,7 @@ const Orders = () => {
                               )}
                             </div>
                           )}
+                          {order.status === "delivered" && <OrderReturns order={order} />}
                           {/* Order Items */}
                           <div>
                             <h4 className="font-medium text-gray-700 mb-3">
@@ -446,6 +448,12 @@ const Orders = () => {
                                 <span>Total</span>
                                 <span>{formatCurrency(order.totalAmount)}</span>
                               </div>
+                              <Link
+                                to={`/orders/${order.orderId}/receipt`}
+                                className="inline-block pt-2 text-sm text-orange-600 hover:underline"
+                              >
+                                View receipt
+                              </Link>
                             </div>
                           </div>
                         </div>
