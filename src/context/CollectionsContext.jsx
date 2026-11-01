@@ -1,5 +1,5 @@
 // CollectionsContext.js
-import React, { createContext, useState, useContext, useCallback } from "react";
+import React, { createContext, useState, useContext, useCallback, useRef } from "react";
 import * as catalog from "../api/catalog";
 
 const CollectionsContext = createContext({
@@ -72,12 +72,17 @@ export const CollectionsProvider = ({ children }) => {
 
   // Catalog data comes from /api/v2 through src/api/catalog.js, which returns
   // the v1 shapes these pages were written against (P1-23).
+  const collectionsLoaded = useRef(false);
   const fetchCollections = useCallback(async () => {
-    if (CollectionsData && Object.keys(CollectionsData).length > 0) return;
+    // Many components ask; a new object for each would re-render them all.
+    if (collectionsLoaded.current) return;
     setIsLoading(true);
     setError(null);
     try {
-      setCollectionsData(await catalog.getCollectionsData());
+      const data = await catalog.getCollectionsData();
+      if (collectionsLoaded.current) return;
+      collectionsLoaded.current = true;
+      setCollectionsData(data);
     } catch (err) {
       console.error("Error in fetchCollections:", err);
       setError(err.message);
