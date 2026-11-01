@@ -59,7 +59,7 @@ const ImageDrop = ({ images, onChange, target, disabledReason, multiple = true, 
             setDragging(false);
             upload(e.dataTransfer.files);
           }}
-          className={`h-24 w-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center text-xs text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed ${dragging ? "border-orange-600 bg-orange-50" : "border-gray-300 hover:border-gray-400"}`}
+          className={`h-24 w-24 rounded-lg border-2 border-dashed flex flex-col items-center justify-center text-xs text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed ${dragging ? "border-orange-500 bg-orange-50" : "border-gray-300 hover:border-gray-400"}`}
         >
           {uploading > 0 ? (
             <>

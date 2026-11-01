@@ -180,7 +180,7 @@
 //                 type="email"
 //                 autoComplete="email"
 //                 disabled={isSubmitting || isBlocked}
-//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-400 focus:border-orange-400 sm:text-sm ${
 //                   errors.email ? "border-red-500" : "border-gray-300"
 //                 }`}
 //                 value={formData.email}
@@ -202,7 +202,7 @@
 //                 type="password"
 //                 autoComplete="current-password"
 //                 disabled={isSubmitting || isBlocked}
-//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm ${
+//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-400 focus:border-orange-400 sm:text-sm ${
 //                   errors.password ? "border-red-500" : "border-gray-300"
 //                 }`}
 //                 value={formData.password}
@@ -218,7 +218,7 @@
 //           <button
 //             type="submit"
 //             disabled={isSubmitting || isBlocked}
-//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-orange-400 hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 disabled:opacity-50 disabled:cursor-not-allowed"
 //           >
 //             {isSubmitting ? (
 //               <Loader2 className="h-5 w-5 animate-spin" />
@@ -457,7 +457,7 @@ function Login() {
                   type="email"
                   autoComplete="email"
                   disabled={isSubmitting || isBlocked}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-600 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-500 transition-colors duration-200 ${
                     errors.email 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -490,7 +490,7 @@ function Login() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   disabled={isSubmitting || isBlocked}
-                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-600 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-500 transition-colors duration-200 ${
                     errors.password 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -529,7 +529,7 @@ function Login() {
             <button
               type="submit"
               disabled={isSubmitting || isBlocked}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold bg-orange-500 text-black bg-gradient-to-r focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold bg-orange-400 text-black bg-gradient-to-r focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {isSubmitting ? (
                 <>

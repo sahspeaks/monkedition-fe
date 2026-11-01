@@ -273,7 +273,7 @@ const Orders = () => {
                                   type="button"
                                   disabled={payingOrder === order._id}
                                   onClick={() => handlePay(order)}
-                                  className="px-4 py-2 rounded-lg text-sm font-semibold bg-orange-500 text-black hover:bg-orange-600 disabled:opacity-50"
+                                  className="px-4 py-2 rounded-lg text-sm font-semibold bg-orange-400 text-black hover:bg-orange-500 disabled:opacity-50"
                                 >
                                   {payingOrder === order._id ? "Opening payment..." : "Pay now"}
                                 </button>

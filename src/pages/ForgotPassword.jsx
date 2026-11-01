@@ -38,7 +38,7 @@ const ForgotPassword = () => {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600"
+                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
             {status === "error" && (
@@ -47,7 +47,7 @@ const ForgotPassword = () => {
             <button
               type="submit"
               disabled={status === "sending"}
-              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-500 text-black disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-400 text-black disabled:opacity-50"
             >
               {status === "sending" ? "Sending..." : "Send reset link"}
             </button>

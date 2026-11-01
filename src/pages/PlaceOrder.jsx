@@ -503,7 +503,7 @@
 //                     setShippingFee(0);
 //                   }}
 //                   className={`border p-4 rounded flex-1 ${
-//                     paymentMethod === "Prepaid" ? "border-orange-500" : ""
+//                     paymentMethod === "Prepaid" ? "border-orange-400" : ""
 //                   }`}
 //                 >
 //                   Online
@@ -515,7 +515,7 @@
 //                     setShippingFee(50);
 //                   }}
 //                   className={`border p-4 rounded flex-1 ${
-//                     paymentMethod === "COD" ? "border-orange-500" : ""
+//                     paymentMethod === "COD" ? "border-orange-400" : ""
 //                   }`}
 //                 >
 //                   Cash on Delivery
@@ -529,7 +529,7 @@
 //             <button
 //               type="submit"
 //               disabled={isLoading}
-//               className="w-full flex justify-center items-center gap-2 bg-orange-500 text-black py-3 rounded-md  font-medium disabled:bg-orange-200"
+//               className="w-full flex justify-center items-center gap-2 bg-orange-400 text-black py-3 rounded-md  font-medium disabled:bg-orange-200"
 //             >
 //               {isLoading ? (
 //                 <>
@@ -1643,7 +1643,7 @@ const PlaceOrder = () => {
                       type="button"
                       disabled={applyingPromo || !promoInput.trim()}
                       onClick={applyPromo}
-                      className="px-4 py-2 rounded bg-orange-500 text-black text-sm disabled:opacity-50"
+                      className="px-4 py-2 rounded bg-orange-400 text-black text-sm disabled:opacity-50"
                     >
                       {applyingPromo ? "Applying..." : "Apply"}
                     </button>
@@ -1664,7 +1664,7 @@ const PlaceOrder = () => {
                   }}
                   className={`border p-4 rounded flex-1 transition-colors ${
                     paymentMethod === "Prepaid"
-                      ? "border-orange-500 bg-orange-50"
+                      ? "border-orange-400 bg-orange-50"
                       : "border-gray-300 hover:border-gray-400"
                   }`}
                 >
@@ -1678,7 +1678,7 @@ const PlaceOrder = () => {
                   }}
                   className={`border p-4 rounded flex-1 transition-colors ${
                     paymentMethod === "COD"
-                      ? "border-orange-500 bg-orange-50"
+                      ? "border-orange-400 bg-orange-50"
                       : "border-gray-300 hover:border-gray-400"
                   }`}
                 >
@@ -1697,7 +1697,7 @@ const PlaceOrder = () => {
                 {!otp.sent ? (
                   <>
                     <p className="text-gray-700">We will email a 6-digit code to {user?.email}. You only need to do this once.</p>
-                    <button type="button" disabled={otp.busy} onClick={sendOtp} className="px-4 py-2 rounded bg-orange-500 text-black disabled:opacity-50">
+                    <button type="button" disabled={otp.busy} onClick={sendOtp} className="px-4 py-2 rounded bg-orange-400 text-black disabled:opacity-50">
                       {otp.busy ? "Sending..." : "Send code"}
                     </button>
                   </>
@@ -1714,7 +1714,7 @@ const PlaceOrder = () => {
                         onChange={(e) => setOtp({ ...otp, code: e.target.value.replace(/\D/g, "") })}
                         className="w-32 border border-gray-300 rounded px-3 py-2"
                       />
-                      <button type="button" disabled={otp.busy || otp.code.length !== 6} onClick={confirmOtp} className="px-4 py-2 rounded bg-orange-500 text-black disabled:opacity-50">
+                      <button type="button" disabled={otp.busy || otp.code.length !== 6} onClick={confirmOtp} className="px-4 py-2 rounded bg-orange-400 text-black disabled:opacity-50">
                         Verify
                       </button>
                       <button type="button" disabled={otp.busy} onClick={sendOtp} className="px-4 py-2 rounded border border-gray-300 disabled:opacity-50">
@@ -1730,7 +1730,7 @@ const PlaceOrder = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center items-center gap-2 bg-orange-500 text-black py-3 rounded-md font-medium disabled:bg-orange-200 disabled:cursor-not-allowed transition-colors hover:bg-orange-600 disabled:hover:bg-orange-200"
+              className="w-full flex justify-center items-center gap-2 bg-orange-400 text-black py-3 rounded-md font-medium disabled:bg-orange-200 disabled:cursor-not-allowed transition-colors hover:bg-orange-500 disabled:hover:bg-orange-200"
             >
               {isLoading ? (
                 <>

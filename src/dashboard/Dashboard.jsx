@@ -116,7 +116,7 @@ const Dashboard = () => {
               end={end}
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${isActive ? "bg-orange-500 text-black font-medium" : "hover:bg-gray-800 hover:text-white"}`
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${isActive ? "bg-orange-400 text-black font-medium" : "hover:bg-gray-800 hover:text-white"}`
               }
             >
               <Icon className="h-4 w-4" aria-hidden="true" />

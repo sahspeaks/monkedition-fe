@@ -94,7 +94,7 @@ const TabButton = forwardRef(({ tab, isActive, onClick, ...props }, ref) => (
       transform active:scale-95
       focus:outline-none focus:ring-offset-2 focus:ring-slate-500
       ${isActive
-        ? 'text-white z-10 shadow-sm bg-orange-500 text-xl lg:text-3xl'
+        ? 'text-black z-10 shadow-sm bg-orange-400 text-xl lg:text-3xl'
         : 'text-gray-600 hover:text-gray-800 z-0 text-sm'
       }
       text-center

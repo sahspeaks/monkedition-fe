@@ -42,7 +42,7 @@ export const Card = ({ title, actions, children, className = "" }) => (
 
 const VARIANTS = {
   primary: "bg-gray-900 text-white hover:bg-gray-700",
-  accent: "bg-orange-500 text-black hover:bg-orange-600",
+  accent: "bg-orange-400 text-black hover:bg-orange-500",
   secondary: "bg-white text-gray-800 border border-gray-300 hover:bg-gray-50",
   danger: "bg-white text-red-700 border border-red-300 hover:bg-red-50",
 };
@@ -63,7 +63,7 @@ export const LinkButton = ({ variant = "secondary", className = "", ...props }) 
 );
 
 const inputClass =
-  "mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500";
+  "mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400";
 
 export const Field = ({ label, hint, children }) => (
   <label className="block text-sm font-medium text-gray-700">
@@ -246,7 +246,7 @@ export const SearchBox = ({ onSearch, placeholder = "Search" }) => {
       value={value}
       onChange={(e) => setValue(e.target.value)}
       placeholder={placeholder}
-      className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+      className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
     />
   );
 };

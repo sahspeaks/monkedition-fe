@@ -216,7 +216,7 @@ const OrderReturns = ({ order }) => {
             </div>
             {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
             <div className="flex gap-2">
-              <button type="submit" disabled={busy || uploading} className="px-4 py-2 rounded-lg font-medium bg-orange-500 text-black disabled:opacity-50">
+              <button type="submit" disabled={busy || uploading} className="px-4 py-2 rounded-lg font-medium bg-orange-400 text-black disabled:opacity-50">
                 {busy ? "Sending..." : "Send request"}
               </button>
               <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300">

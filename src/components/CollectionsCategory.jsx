@@ -68,7 +68,7 @@ const CollectionsCategory = () => {
           
           <div className={`absolute inset-0 bg-gradient-to-br transition-all duration-500 ${
             isHovered 
-              ? 'from-orange-600/10 via-black-500/5 to-black-500/10 opacity-100' 
+              ? 'from-orange-500/10 via-black-500/5 to-black-500/10 opacity-100' 
               : 'from-transparent to-transparent opacity-0'
           }`}></div>
 
@@ -181,7 +181,7 @@ const CollectionsCategory = () => {
         <div className="text-center mb-6 sm:mb-16">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-gray-800 mb-3 sm:mb-4 tracking-tight">
             Style
-            <span className="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent"> Collections</span>
+            <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent"> Collections</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto font-medium px-4">
             Discover curated collections that define your unique style and personality

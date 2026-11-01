@@ -159,7 +159,7 @@
 //                   placeholder="First Name"
 //                   className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
 //                     errors.firstName ? "border-red-500" : "border-gray-300"
-//                   } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-600 focus:border-orange-600`}
+//                   } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
 //                 />
 //                 {errors.firstName && (
 //                   <p className="mt-1 text-xs text-red-500">
@@ -177,7 +177,7 @@
 //                   placeholder="Last Name"
 //                   className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
 //                     errors.lastName ? "border-red-500" : "border-gray-300"
-//                   } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-600 focus:border-orange-600`}
+//                   } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
 //                 />
 //                 {errors.lastName && (
 //                   <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>
@@ -195,7 +195,7 @@
 //                 placeholder="Email address"
 //                 className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
 //                   errors.email ? "border-red-500" : "border-gray-300"
-//                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-600 focus:border-orange-600`}
+//                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
 //               />
 //               {errors.email && (
 //                 <p className="mt-1 text-xs text-red-500">{errors.email}</p>
@@ -211,7 +211,7 @@
 //                 placeholder="Password"
 //                 className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
 //                   errors.password ? "border-red-500" : "border-gray-300"
-//                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-600 focus:border-orange-600`}
+//                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
 //               />
 //               <button
 //                 type="button"
@@ -251,7 +251,7 @@
 //                 placeholder="Phone number"
 //                 className={`appearance-none rounded-lg relative block w-full px-3 py-2 border ${
 //                   errors.phone ? "border-red-500" : "border-gray-300"
-//                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-600 focus:border-orange-600`}
+//                 } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-orange-500 focus:border-orange-500`}
 //               />
 //               {errors.phone && (
 //                 <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
@@ -262,7 +262,7 @@
 //           <button
 //             type="submit"
 //             disabled={isSubmitting}
-//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-black bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-black bg-orange-400 hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
 //           >
 //             {isSubmitting ? (
 //               <Loader2 className="animate-spin" size={20} />
@@ -530,7 +530,7 @@ export default function Signup() {
                     value={formData.firstName}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 ${
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                       errors.firstName 
                         ? "border-red-300 bg-red-50" 
                         : "border-gray-300 bg-white hover:border-gray-400"
@@ -561,7 +561,7 @@ export default function Signup() {
                     value={formData.lastName}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 ${
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                       errors.lastName 
                         ? "border-red-300 bg-red-50" 
                         : "border-gray-300 bg-white hover:border-gray-400"
@@ -595,7 +595,7 @@ export default function Signup() {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                     errors.email 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -627,7 +627,7 @@ export default function Signup() {
                   value={formData.password}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                     errors.password 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -737,7 +737,7 @@ export default function Signup() {
                   value={formData.phone}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                     errors.phone 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -757,7 +757,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold text-black bg-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold text-black bg-orange-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {isSubmitting ? (
                 <>

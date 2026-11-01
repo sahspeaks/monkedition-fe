@@ -47,7 +47,7 @@ const ProfileSelectTile = ({
         name={name}
         value={value}
         onChange={handleInputChange}
-        className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+        className="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
         required={required}
       >
         <option value="">{placeholder}</option>

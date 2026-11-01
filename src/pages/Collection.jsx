@@ -171,7 +171,7 @@ function Collection() {
       </div>
     );
     const button = (label, onClick) => (
-      <button type="button" onClick={onClick} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-500 text-black">
+      <button type="button" onClick={onClick} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-400 text-black">
         {label}
       </button>
     );

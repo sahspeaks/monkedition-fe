@@ -32,7 +32,7 @@ function NewsletterBox() {
         />
         <button
           type="submit"
-          className="bg-orange-500 text-black text-xs px-10 py-4 font-semibold hover:bg-orange-600 transition-colors"
+          className="bg-orange-400 text-black text-xs px-10 py-4 font-semibold hover:bg-orange-500 transition-colors"
         >
           Coming Soon
         </button>

@@ -96,7 +96,7 @@ const AddressBook = () => {
           <button
             type="button"
             onClick={startAdd}
-            className="px-3 py-1 text-sm bg-orange-500 text-black rounded hover:bg-orange-600"
+            className="px-3 py-1 text-sm bg-orange-400 text-black rounded hover:bg-orange-500"
           >
             Add address
           </button>
@@ -136,7 +136,7 @@ const AddressBook = () => {
             <button
               type="submit"
               disabled={busy}
-              className="px-4 py-2 text-sm bg-orange-500 text-black rounded disabled:opacity-50"
+              className="px-4 py-2 text-sm bg-orange-400 text-black rounded disabled:opacity-50"
             >
               {busy ? "Saving..." : "Save address"}
             </button>

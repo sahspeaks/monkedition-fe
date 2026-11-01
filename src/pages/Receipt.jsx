@@ -32,7 +32,7 @@ const Receipt = () => {
         <Link to={params.get("staff") ? `/dashboard/orders/${order.orderNumber}` : "/orders"} className="text-orange-700 hover:underline">
           Back
         </Link>
-        <button type="button" onClick={() => window.print()} className="px-4 py-2 rounded-lg font-medium bg-orange-500 text-black">
+        <button type="button" onClick={() => window.print()} className="px-4 py-2 rounded-lg font-medium bg-orange-400 text-black">
           Print or save as PDF
         </button>
       </div>

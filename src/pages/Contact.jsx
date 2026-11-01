@@ -47,7 +47,7 @@ function Contact() {
           </p>
           <button
             onClick={handleOnClick}
-            className="border border-black px-8 py-4 text-sm hover:bg-orange-500 transition-all duration-500"
+            className="border border-black px-8 py-4 text-sm hover:bg-orange-400 transition-all duration-500"
           >
             Explore Jobs
           </button>

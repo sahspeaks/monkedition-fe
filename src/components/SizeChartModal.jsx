@@ -272,7 +272,7 @@ export const SizeChartModal = ({ setIsModalOpen, parentCategory }) => {
                     {columns.map((column, index) => (
                       <th 
                         key={column} 
-                        className={`bg-orange-500 text-black font-semibold py-4 px-6 text-center ${
+                        className={`bg-orange-400 text-black font-semibold py-4 px-6 text-center ${
                           index === 0 ? 'rounded-l-xl' : ''
                         } ${
                           index === columns.length - 1 ? 'rounded-r-xl' : ''

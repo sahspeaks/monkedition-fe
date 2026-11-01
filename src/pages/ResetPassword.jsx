@@ -48,7 +48,7 @@ const ResetPassword = () => {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600"
+                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
             <div className="space-y-2">
@@ -62,14 +62,14 @@ const ResetPassword = () => {
                 autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-600"
+                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
             {error && <p className="text-xs text-red-600">{error}</p>}
             <button
               type="submit"
               disabled={status === "saving"}
-              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-500 text-black disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-orange-400 text-black disabled:opacity-50"
             >
               {status === "saving" ? "Saving..." : "Change password"}
             </button>

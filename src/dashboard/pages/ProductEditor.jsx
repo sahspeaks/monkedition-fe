@@ -125,7 +125,7 @@ const ProductEditor = () => {
       title={url === mainImage ? "Main image" : "Make this the main image"}
       aria-label={url === mainImage ? "Main image" : "Make this the main image"}
       onClick={() => set("image", url)}
-      className={`absolute bottom-1 left-1 rounded-full p-1 ${url === mainImage ? "bg-orange-500 text-black" : "bg-white/90 text-gray-500 hover:text-black"}`}
+      className={`absolute bottom-1 left-1 rounded-full p-1 ${url === mainImage ? "bg-orange-400 text-black" : "bg-white/90 text-gray-500 hover:text-black"}`}
     >
       <Star className="h-3 w-3" />
     </button>
@@ -223,7 +223,7 @@ const ProductEditor = () => {
                     title={name}
                     onClick={() => toggle("color", code)}
                     style={{ backgroundColor: hex }}
-                    className={`h-8 w-8 rounded-full border flex items-center justify-center ${on ? "ring-2 ring-offset-2 ring-orange-600 border-gray-700" : "border-gray-300"}`}
+                    className={`h-8 w-8 rounded-full border flex items-center justify-center ${on ? "ring-2 ring-offset-2 ring-orange-500 border-gray-700" : "border-gray-300"}`}
                   >
                     {on && <Check className="h-4 w-4 text-white mix-blend-difference" />}
                   </button>
