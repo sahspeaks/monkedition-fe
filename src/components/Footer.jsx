@@ -111,7 +111,7 @@ function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-neutral-200">
-        <div className="container mx-auto px-5 md:px-6 pt-5 pb-36 sm:pb-5 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-neutral-600 text-sm">
+        <div className="container mx-auto px-5 md:px-6 pt-5 pb-24 sm:pb-5 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-neutral-600 text-sm">
           <p className="text-center sm:text-left">
             © {currentYear} <span className="font-semibold text-neutral-800">Monkedition</span>. All rights reserved.
           </p>
