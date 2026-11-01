@@ -15,7 +15,7 @@ function NewsletterBox() {
       <p className="text-gray-500 text-justify">
         Our newsletter subscription feature is coming soon! Subscribe to get
         special discounts, early access to new designs, and stay updated with
-        the latest drops from Moonsflare. Be among the first to receive our{" "}
+        the latest drops from Monkedition. Be among the first to receive our{" "}
         <span className="text-orange-300">20% off</span> welcome discount when
         subscriptions go live.
       </p>

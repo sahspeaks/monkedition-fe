@@ -16,7 +16,7 @@ function Footer() {
           {/* Brand & Description */}
           <div className="col-span-2 lg:col-span-1">
             <div className="mb-4">
-              <img src={assets.logo} alt="Moonsflare Logo" className="h-10 w-auto" />
+              <img src={assets.logo} alt="Monkedition Logo" className="h-10 w-auto" />
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed max-w-sm">
               Your go-to destination for trendy streetwear that blends comfort, style, and individuality. 
@@ -113,7 +113,7 @@ function Footer() {
       <div className="border-t border-neutral-200">
         <div className="container mx-auto px-6 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-neutral-600 text-sm">
           <p className="text-center sm:text-left">
-            © {currentYear} <span className="font-semibold text-neutral-800">Moonsflare</span>. All rights reserved.
+            © {currentYear} <span className="font-semibold text-neutral-800">Monkedition</span>. All rights reserved.
           </p>
           <span className="text-center sm:text-right">
             Crafted with <span role="img" aria-label="heart" className="text-red-500">❤️</span> for streetwear lovers

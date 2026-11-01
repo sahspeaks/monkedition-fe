@@ -117,7 +117,7 @@ export const payForOrder = async ({ orderNumber, prefill }) => {
       amount: String(payment.amount.amount),
       currency: "INR",
       order_id: payment.gatewayOrderId,
-      name: "Moons Flare",
+      name: "Monkedition",
       description: `Order ${orderNumber}`,
       prefill,
       theme: { color: "#FDBA74" },
