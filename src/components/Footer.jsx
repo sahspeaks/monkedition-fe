@@ -16,7 +16,7 @@ function Footer() {
           {/* Brand & Description */}
           <div className="col-span-2 lg:col-span-1">
             <div className="mb-4">
-              <img src={assets.logo} alt="Monkedition Logo" className="h-10 w-auto" />
+              <img src={assets.logoFull} alt="Monkedition" className="h-28 w-auto" />
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed max-w-sm">
               Your go-to destination for trendy streetwear that blends comfort, style, and individuality. 

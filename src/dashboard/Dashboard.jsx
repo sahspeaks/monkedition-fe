@@ -1,5 +1,6 @@
 // The staff dashboard, at /dashboard. It loads as its own chunk, so customers
 // never download it, and the API refuses anyone without a staff role anyway.
+import { assets } from "../assets/assets";
 import { useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import {
@@ -90,7 +91,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 md:flex">
       <div className="md:hidden flex items-center justify-between bg-gray-900 text-white px-4 py-3">
-        <span className="font-semibold">Monkedition</span>
+        <img src={assets.logoNameLight} alt="Monkedition" className="h-7" />
         <button
           type="button"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -104,7 +105,9 @@ const Dashboard = () => {
       <aside
         className={`${menuOpen ? "block" : "hidden"} md:flex md:flex-col md:w-60 md:shrink-0 md:sticky md:top-0 md:h-screen bg-gray-900 text-gray-300`}
       >
-        <div className="hidden md:block px-5 py-5 text-lg font-semibold text-white">Monkedition</div>
+        <div className="hidden md:block px-5 py-5">
+          <img src={assets.logoNameLight} alt="Monkedition" className="h-9" />
+        </div>
         <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1" aria-label="Dashboard">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <NavLink

@@ -1011,8 +1011,7 @@ const PlaceOrder = () => {
         currency: "INR",
         name: "Monkedition",
         description: "Order Payment",
-        image:
-          "https://res.cloudinary.com/dra8tbz4z/image/upload/v1749202863/MF/L_pqzxzz.png",
+        image: `${window.location.origin}/icon-512.png`,
         order_id: razorpayOrderId,
         handler: async (response) => {
           try {
@@ -1184,7 +1183,7 @@ const PlaceOrder = () => {
         order_id: order.payment.gatewayOrderId,
         name: "Monkedition",
         description: `Order ${order.orderNumber}`,
-        image: "https://res.cloudinary.com/dra8tbz4z/image/upload/v1749202863/MF/L_pqzxzz.png",
+        image: `${window.location.origin}/icon-512.png`,
         prefill: {
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
