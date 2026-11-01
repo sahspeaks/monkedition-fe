@@ -807,27 +807,18 @@ function BottomNavBar() {
             <ProfileModal />
 
             {/* Bottom Navigation Bar */}
-            <div className={`fixed bottom-1 left-4 right-4 z-40 flex justify-center ${searching ? "invisible" : ""}`}>
-                <div className="bg-gray-800/90 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/10">
-                    <div className="flex items-center justify-center space-x-2">
-
-                        {/* Search */}
-                        <SiteSearch
-                            onPhone
-                            onOpenChange={setSearching}
-                            triggerClassName={(active) =>
-                                `flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${active
-                                    ? 'bg-orange-400 text-black shadow-lg'
-                                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                                }`
-                            }
-                        />
+            <div className={`fixed bottom-1 left-4 right-4 z-40 flex justify-center pointer-events-none ${searching ? "invisible" : ""}`}>
+                <div className="relative pointer-events-auto text-gray-800 drop-shadow-xl">
+                    {/* Raised centre that holds the Home button */}
+                    <svg className="absolute left-1/2 -translate-x-1/2 bottom-[calc(100%-1px)] w-[140px] h-[46px] fill-current" viewBox="0 0 140 46" aria-hidden="true">
+                        <path d="M0 46 C28 46 30 0 70 0 C110 0 112 46 140 46 Z" />
+                    </svg>
 
                         {/* Home */}
                         <NavLink
                             to="/"
                             aria-label="Home"
-                            className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${isActive('/')
+                            className={`absolute left-1/2 -translate-x-1/2 -top-[43px] flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${isActive('/')
                                 ? '!bg-orange-400 !text-black shadow-lg'
                                 : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
                                 }`}
@@ -840,6 +831,20 @@ function BottomNavBar() {
                                 }}
                             />
                         </NavLink>
+
+                    <div className="flex items-center justify-center gap-6 bg-gray-800 rounded-3xl px-6 py-3">
+
+                        {/* Search */}
+                        <SiteSearch
+                            onPhone
+                            onOpenChange={setSearching}
+                            triggerClassName={(active) =>
+                                `flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${active
+                                    ? 'bg-orange-400 text-black shadow-lg'
+                                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                                }`
+                            }
+                        />
 
                         {/* Collections */}
                         <button
