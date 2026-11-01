@@ -72,3 +72,19 @@ export const verifyEmail = (token) =>
 
 export const requestEmailOtp = () => api.post("/api/v2/auth/email/otp", {});
 export const verifyEmailOtp = (code) => api.post("/api/v2/auth/email/otp/verify", { code });
+
+const AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+
+/** Sends a profile picture straight to Cloudinary, signed by the server. */
+export const uploadAvatar = async (file) => {
+  if (!AVATAR_TYPES.has(file.type)) throw new Error("Please use a JPG, PNG, WebP or AVIF image");
+  if (file.size > 5 * 1024 * 1024) throw new Error("Please use an image of 5 MB or smaller");
+  const { uploadUrl, fields } = await api.post("/api/v2/me/avatar/sign", {});
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.append(key, value);
+  form.append("file", file);
+  const response = await fetch(uploadUrl, { method: "POST", body: form });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.error?.message ?? "Could not upload your picture");
+  return data.secure_url;
+};

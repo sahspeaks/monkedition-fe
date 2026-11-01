@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { uploadAvatar } from "../api/auth";
 import { toLocalMobile } from "../utils/phone";
 import { useAuth } from "../context/NewAuthContext";
 import Orders from "./Orders";
@@ -15,6 +16,8 @@ const Profile = () => {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInput = useRef(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -47,20 +50,21 @@ const Profile = () => {
       return false;
     }
 
-    if (formData.avatar && !isValidUrl(formData.avatar)) {
-      setError("Please enter a valid avatar URL");
-      return false;
-    }
-
     return true;
   };
 
-  const isValidUrl = (string) => {
+  const chooseAvatar = async (file) => {
+    if (!file) return;
+    setError("");
+    setSuccess("");
+    setUploadingAvatar(true);
     try {
-      new URL(string);
-      return true;
-    } catch (_) {
-      return false;
+      const url = await uploadAvatar(file);
+      setFormData((prev) => ({ ...prev, avatar: url }));
+    } catch (err) {
+      setError(err.message || "Could not upload your picture. Please try again.");
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -188,14 +192,38 @@ const Profile = () => {
                 />
               </div>
               {isEditing && (
-                <ProfileInputTile
-                  isDisable={isEditing}
-                  title="Avatar URL"
-                  name="avatar"
-                  value={formData.avatar}
-                  handleInputChange={handleInputChange}
-                  placeholder="https://example.com/avatar.jpg"
-                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={uploadingAvatar}
+                    onClick={() => avatarInput.current?.click()}
+                    className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {uploadingAvatar && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {uploadingAvatar ? "Uploading..." : formData.avatar ? "Change photo" : "Add photo"}
+                  </button>
+                  {formData.avatar && !uploadingAvatar && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, avatar: "" }))}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                  <span className="text-xs text-gray-500">JPG, PNG or WebP, up to 5 MB. Saved when you save changes.</span>
+                  <input
+                    ref={avatarInput}
+                    type="file"
+                    hidden
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    aria-label="Profile photo"
+                    onChange={(e) => {
+                      chooseAvatar(e.target.files?.[0]);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -223,7 +251,7 @@ const Profile = () => {
               <button
                 type="submit"
                 className="px-6 py-2 bg-orange-300 text-black rounded hover:bg-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={updateLoading}
+                disabled={updateLoading || uploadingAvatar}
               >
                 {updateLoading ? (
                   <span className="flex items-center gap-2">
