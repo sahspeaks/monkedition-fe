@@ -54,7 +54,7 @@ function Footer() {
                 { to: "/privacy", label: "Privacy Policy" },
                 { to: "/terms", label: "Terms & Conditions" },
                 { to: "/return", label: "Return Policy" },
-                { to: "/shipping", label: "Shipping Info" },
+                { to: "/shipping", label: "Shipping Policy" },
               ].map((link) => (
                 <li key={link.to}>
                   <Link
