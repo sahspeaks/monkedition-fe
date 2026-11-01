@@ -59,7 +59,7 @@ const SuccessPage = () => {
           </button>
           <button
             onClick={() => navigate("/orders")}
-            className="px-6 py-2 bg-orange-300 text-black rounded-lg hover:bg-orange-400 transition"
+            className="px-6 py-2 bg-orange-400 text-black rounded-lg hover:bg-orange-500 transition"
           >
             View Orders
           </button>

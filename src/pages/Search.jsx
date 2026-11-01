@@ -96,7 +96,7 @@ function Search() {
   };
 
   const action = (label, onClick) => (
-    <button type="button" onClick={onClick} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-300 text-black">
+    <button type="button" onClick={onClick} className="px-4 py-2 rounded-lg text-sm font-medium bg-orange-400 text-black">
       {label}
     </button>
   );
@@ -154,7 +154,7 @@ function Search() {
             <img className={`h-3 sm:hidden ${showFilter ? "rotate-90" : ""}`} src={assets.dropdown_icon} alt="" />
           </button>
           {hasFilters && (
-            <button type="button" onClick={() => update({ size: null, price: null })} className="block text-sm text-orange-600 hover:underline">
+            <button type="button" onClick={() => update({ size: null, price: null })} className="block text-sm text-orange-700 hover:underline">
               Clear filters
             </button>
           )}

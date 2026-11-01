@@ -262,7 +262,7 @@
 //           <button
 //             type="submit"
 //             disabled={isSubmitting}
-//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-black bg-orange-300 hover:bg-orange-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-black bg-orange-400 hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
 //           >
 //             {isSubmitting ? (
 //               <Loader2 className="animate-spin" size={20} />
@@ -274,10 +274,10 @@
 //           <div className="text-center text-sm">
 //             <Link
 //               to="/login"
-//               className="text-gray-600 hover:text-orange-500 transition-colors"
+//               className="text-gray-600 hover:text-orange-800 transition-colors"
 //             >
 //               Already have an account?{" "}
-//               <span className="text-orange-400 hover:text-orange-500">
+//               <span className="text-orange-700 hover:text-orange-800">
 //                 Sign in
 //               </span>
 //             </Link>
@@ -483,7 +483,7 @@ export default function Signup() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
+          <Loader2 className="h-12 w-12 animate-spin text-orange-700" />
           <p className="text-gray-600 text-sm">Loading...</p>
         </div>
       </div>
@@ -530,7 +530,7 @@ export default function Signup() {
                     value={formData.firstName}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-300 focus:border-orange-300 transition-colors duration-200 ${
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                       errors.firstName 
                         ? "border-red-300 bg-red-50" 
                         : "border-gray-300 bg-white hover:border-gray-400"
@@ -561,7 +561,7 @@ export default function Signup() {
                     value={formData.lastName}
                     onChange={handleChange}
                     disabled={isSubmitting}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-300 focus:border-orange-300 transition-colors duration-200 ${
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                       errors.lastName 
                         ? "border-red-300 bg-red-50" 
                         : "border-gray-300 bg-white hover:border-gray-400"
@@ -595,7 +595,7 @@ export default function Signup() {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-300 focus:border-orange-300 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                     errors.email 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -627,7 +627,7 @@ export default function Signup() {
                   value={formData.password}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-300 focus:border-orange-300 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                     errors.password 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -737,7 +737,7 @@ export default function Signup() {
                   value={formData.phone}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-300 focus:border-orange-300 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-400 transition-colors duration-200 ${
                     errors.phone 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -757,7 +757,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold text-black bg-orange-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold text-black bg-orange-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {isSubmitting ? (
                 <>
@@ -800,7 +800,7 @@ export default function Signup() {
               Already have an account?{" "}
               <Link
                 to="/login"
-                className="font-semibold text-orange-300 hover:text-orange-400 transition-colors duration-200"
+                className="font-semibold text-orange-700 hover:text-orange-800 transition-colors duration-200"
                 tabIndex={isSubmitting ? -1 : 0}
               >
                 Sign in

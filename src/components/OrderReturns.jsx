@@ -131,7 +131,7 @@ const OrderReturns = ({ order }) => {
           <form onSubmit={submit} className="bg-white p-3 rounded-lg space-y-3 text-sm">
             <p className="text-xs text-gray-600">
               We accept returns for manufacturing defects within 7 days of delivery, not for size issues. See our{" "}
-              <Link to="/return" className="text-orange-600 hover:underline">return policy</Link>.
+              <Link to="/return" className="text-orange-700 hover:underline">return policy</Link>.
             </p>
             {returnable.map((item) => (
               <label key={item.sku} className="flex items-center justify-between gap-3">
@@ -216,7 +216,7 @@ const OrderReturns = ({ order }) => {
             </div>
             {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
             <div className="flex gap-2">
-              <button type="submit" disabled={busy || uploading} className="px-4 py-2 rounded-lg font-medium bg-orange-300 text-black disabled:opacity-50">
+              <button type="submit" disabled={busy || uploading} className="px-4 py-2 rounded-lg font-medium bg-orange-400 text-black disabled:opacity-50">
                 {busy ? "Sending..." : "Send request"}
               </button>
               <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300">

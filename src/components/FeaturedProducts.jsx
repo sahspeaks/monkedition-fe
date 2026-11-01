@@ -50,7 +50,7 @@ function FeaturedProducts() {
   if (products?.length === 0) return null;
 
   return (
-    <section className="bg-gray-100">
+    <section className="bg-canvas">
       <ToastContainer />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
         <BoldTitle text1="Featured" text2="Products" />

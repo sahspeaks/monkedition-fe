@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -13,10 +13,10 @@ a.active hr {
 }
 
 * {
-  font-family: Outfit;
+  font-family: Inter, sans-serif;
 }
 .outfit-regular {
-  font-family: "Outfit", serif;
+  font-family: "Inter", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;

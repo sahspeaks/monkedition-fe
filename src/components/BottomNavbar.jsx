@@ -65,7 +65,7 @@
 //                 <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-4 z-10">
 //                     <div className="flex items-center justify-between">
 //                         <div className="flex items-center space-x-3">
-//                             <div className="w-8 h-8 bg-orange-300 rounded-lg flex items-center justify-center">
+//                             <div className="w-8 h-8 bg-orange-400 rounded-lg flex items-center justify-center">
 //                                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
 //                                     <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
 //                                 </svg>
@@ -122,7 +122,7 @@
 //                                         >
 //                                             <div className="flex items-center space-x-3">
 //                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 ${expandedSubcategories[category]
-//                                                     ? "bg-orange-100 text-orange-400"
+//                                                     ? "bg-orange-100 text-orange-700"
 //                                                     : "bg-gray-100 text-gray-600"
 //                                                     }`}>
 //                                                     {/* <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -140,7 +140,7 @@
 //                                                 </div>
 //                                                 <div>
 //                                                     <p className={`font-semibold transition-colors duration-200 ${expandedSubcategories[category]
-//                                                         ? "text-orange-400"
+//                                                         ? "text-orange-700"
 //                                                         : "text-gray-800"
 //                                                         }`}>
 //                                                         {category}
@@ -152,7 +152,7 @@
 //                                             </div>
 
 //                                             <div className={`p-2 rounded-lg transition-all duration-200 ${expandedSubcategories[category]
-//                                                 ? "bg-orange-100 text-orange-600 rotate-180"
+//                                                 ? "bg-orange-100 text-orange-700 rotate-180"
 //                                                 : "bg-gray-100 text-gray-500 hover:bg-gray-200"
 //                                                 }`}>
 //                                                 <svg className="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,7 +184,7 @@
                                                       
 
 //                                                         <div className="flex-1 min-w-0">
-//                                                             <p className="font-medium text-gray-800 truncate group-hover:text-orange-300 transition-colors duration-200">
+//                                                             <p className="font-medium text-gray-800 truncate group-hover:text-orange-800 transition-colors duration-200">
 //                                                                 {item.name}
 //                                                             </p>
 //                                                             {item.description && (
@@ -195,7 +195,7 @@
 //                                                         </div>
 
 //                                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-//                                                             <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                                             <svg className="w-4 h-4 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
 //                                                             </svg>
 //                                                         </div>
@@ -333,14 +333,14 @@
 
 //             {/* Bottom Navigation Bar */}
 //             <div className="fixed bottom-4 left-4 right-4 z-40 flex justify-center">
-//                 <div className="bg-gray-800/40 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/10">
+//                 <div className="bg-gray-800/90 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/10">
 //                     <div className="flex items-center justify-center space-x-2">
 
 //                         {/* Home */}
 //                         <NavLink
 //                             to="/"
 //                             className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${isActive('/')
-//                                 ? 'bg-orange-300 text-black shadow-lg'
+//                                 ? 'bg-orange-400 text-black shadow-lg'
 //                                 : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
 //                                 }`}
 //                         >
@@ -353,7 +353,7 @@
 //                         <button
 //                             onClick={() => setShowCollectionsModal(!showCollectionsModal)}
 //                             className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${showCollectionsModal
-//                                 ? 'bg-orange-300 text-black shadow-lg'
+//                                 ? 'bg-orange-400 text-black shadow-lg'
 //                                 : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
 //                                 }`}
 //                         >
@@ -370,7 +370,7 @@
 //                         <button
 //                             onClick={() => setShowProfileModal(!showProfileModal)}
 //                             className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${showProfileModal
-//                                 ? 'bg-orange-300 text-black shadow-lg'
+//                                 ? 'bg-orange-400 text-black shadow-lg'
 //                                 : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
 //                                 }`}
 //                         >
@@ -462,7 +462,7 @@ function BottomNavBar() {
                 <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-4 z-10">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-orange-300 rounded-lg flex items-center justify-center">
+                            <div className="w-8 h-8 bg-orange-400 rounded-lg flex items-center justify-center">
                                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                                 </svg>
@@ -519,7 +519,7 @@ function BottomNavBar() {
                                         >
                                             <div className="flex items-center space-x-3">
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 ${expandedSubcategories[category]
-                                                    ? "bg-orange-100 text-orange-400"
+                                                    ? "bg-orange-100 text-orange-700"
                                                     : "bg-gray-100 text-gray-600"
                                                     }`}>
                                                     {
@@ -534,7 +534,7 @@ function BottomNavBar() {
                                                 </div>
                                                 <div>
                                                     <p className={`font-semibold transition-colors duration-200 ${expandedSubcategories[category]
-                                                        ? "text-orange-400"
+                                                        ? "text-orange-700"
                                                         : "text-gray-800"
                                                         }`}>
                                                         {category}
@@ -546,7 +546,7 @@ function BottomNavBar() {
                                             </div>
 
                                             <div className={`p-2 rounded-lg transition-all duration-200 ${expandedSubcategories[category]
-                                                ? "bg-orange-100 text-orange-600 rotate-180"
+                                                ? "bg-orange-100 text-orange-700 rotate-180"
                                                 : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                                 }`}>
                                                 <svg className="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -578,7 +578,7 @@ function BottomNavBar() {
                                                       
 
                                                         <div className="flex-1 min-w-0">
-                                                            <p className="font-medium text-gray-800 truncate group-hover:text-orange-300 transition-colors duration-200">
+                                                            <p className="font-medium text-gray-800 truncate group-hover:text-orange-800 transition-colors duration-200">
                                                                 {item.name}
                                                             </p>
                                                             {item.description && (
@@ -589,7 +589,7 @@ function BottomNavBar() {
                                                         </div>
 
                                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                            <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <svg className="w-4 h-4 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                                                             </svg>
                                                         </div>
@@ -692,7 +692,7 @@ function BottomNavBar() {
                         {user ? (
                             <>
                                 {/* User Info Card */}
-                                <div className="bg-gradient-to-r from-orange-400 to-orange-300 p-4 rounded-2xl mb-6 text-white">
+                                <div className="bg-gradient-to-r from-orange-500 to-orange-400 p-4 rounded-2xl mb-6 text-white">
                                     <div className="flex items-center">
                                         <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -762,7 +762,7 @@ function BottomNavBar() {
                                 <NavLink
                                     to="/login"
                                     onClick={() => setShowProfileModal(false)}
-                                    className="w-full flex items-center justify-center px-6 py-4 bg-orange-300 text-black rounded-xl hover:bg-orange-400  transition-colors duration-200 font-medium"
+                                    className="w-full flex items-center justify-center px-6 py-4 bg-orange-400 text-black rounded-xl hover:bg-orange-500  transition-colors duration-200 font-medium"
                                 >
                                     <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -808,14 +808,14 @@ function BottomNavBar() {
 
             {/* Bottom Navigation Bar */}
             <div className={`fixed bottom-1 left-4 right-4 z-40 flex justify-center ${searching ? "invisible" : ""}`}>
-                <div className="bg-gray-800/40 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/10">
+                <div className="bg-gray-800/90 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/10">
                     <div className="flex items-center justify-center space-x-2">
 
                         {/* Home */}
                         <NavLink
                             to="/"
                             className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${isActive('/')
-                                ? 'bg-orange-300 text-black shadow-lg'
+                                ? 'bg-orange-400 text-black shadow-lg'
                                 : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
                                 }`}
                         >
@@ -830,7 +830,7 @@ function BottomNavBar() {
                             onOpenChange={setSearching}
                             triggerClassName={(active) =>
                                 `flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${active
-                                    ? 'bg-orange-300 text-black shadow-lg'
+                                    ? 'bg-orange-400 text-black shadow-lg'
                                     : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
                                 }`
                             }
@@ -840,7 +840,7 @@ function BottomNavBar() {
                         <button
                             onClick={() => setShowCollectionsModal(!showCollectionsModal)}
                             className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${showCollectionsModal
-                                ? 'bg-orange-300 text-black shadow-lg'
+                                ? 'bg-orange-400 text-black shadow-lg'
                                 : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
                                 }`}
                         >
@@ -853,7 +853,7 @@ function BottomNavBar() {
                         <button
                             onClick={() => setShowProfileModal(!showProfileModal)}
                             className={`flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${showProfileModal
-                                ? 'bg-orange-300 text-black shadow-lg'
+                                ? 'bg-orange-400 text-black shadow-lg'
                                 : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
                                 }`}
                         >

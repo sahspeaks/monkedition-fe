@@ -214,7 +214,7 @@ const OrderDetail = () => {
             <Row label="Courier">{order.shipment?.courier}</Row>
             {order.shipment?.trackingUrl && (
               <Row label="Tracking">
-                <a href={order.shipment.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">Open</a>
+                <a href={order.shipment.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-orange-700 hover:underline">Open</a>
               </Row>
             )}
             {canShip && order.shipment && (

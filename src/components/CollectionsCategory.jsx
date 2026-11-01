@@ -174,14 +174,14 @@ const CollectionsCategory = () => {
   }
 
   return (
-    <div className="bg-gray-100">
+    <div className="bg-canvas">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative z-10">
         
         {/* Header */}
         <div className="text-center mb-6 sm:mb-16">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-gray-800 mb-3 sm:mb-4 tracking-tight">
             Style
-            <span className="bg-gradient-to-r from-orange-200 to-orange-400 bg-clip-text text-transparent"> Collections</span>
+            <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent"> Collections</span>
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto font-medium px-4">
             Discover curated collections that define your unique style and personality

@@ -18,7 +18,7 @@ const ReturnCard = ({ item, onChanged }) => {
 
   return (
     <Card
-      title={<Link to={`/dashboard/orders/${item.orderNumber}`} className="text-orange-600 hover:underline">{item.orderNumber}</Link>}
+      title={<Link to={`/dashboard/orders/${item.orderNumber}`} className="text-orange-700 hover:underline">{item.orderNumber}</Link>}
       actions={<span className="flex items-center gap-2 text-xs text-gray-500">{dateTime(item.createdAt)} <Badge value={item.status} /></span>}
     >
       <Notice>{error}</Notice>

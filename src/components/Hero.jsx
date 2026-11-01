@@ -642,8 +642,8 @@ function Hero() {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleCTAClick(currentSlide)}
                   className="mt-6 sm:mt-8 px-8 sm:px-10 md:px-12 py-3 sm:py-4
-                            bg-orange-300 text-black font-semibold text-sm sm:text-base
-                            rounded-full hover:bg-orange-400 transition-all duration-300
+                            bg-orange-400 text-black font-semibold text-sm sm:text-base
+                            rounded-full hover:bg-orange-500 transition-all duration-300
                             shadow-lg hover:shadow-xl 
                             relative overflow-hidden cursor-pointer"
                 >

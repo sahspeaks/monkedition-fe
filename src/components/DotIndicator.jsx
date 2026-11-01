@@ -16,10 +16,10 @@ const DotIndicators = ({ currentSlideIndex, totalSlides, changeSlide, isAnimatin
             w-2 h-2 sm:w-3 sm:h-3
             rounded-full
             transition-all duration-300
-            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-300
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400
             disabled:cursor-not-allowed
             ${index === currentSlideIndex
-              ? "bg-orange-300 scale-125 shadow-md shadow-orange-200"
+              ? "bg-orange-400 scale-125 shadow-md shadow-orange-200"
               : "bg-gray-300 hover:bg-gray-500"
             }
           `}

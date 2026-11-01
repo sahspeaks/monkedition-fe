@@ -64,13 +64,13 @@ const NAV = [
 const STAFF_ROLES = ["ADMIN", "OPS"];
 
 const NoAccess = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6 text-center">
+  <div className="min-h-screen flex items-center justify-center bg-canvas p-6 text-center">
     <div>
       <h1 className="text-xl font-semibold text-gray-900">No dashboard access</h1>
       <p className="mt-2 text-sm text-gray-600">
         This account is not staff. If it was added recently, sign out and sign in again.
       </p>
-      <Link to="/" className="mt-4 inline-block text-sm text-orange-600 hover:underline">
+      <Link to="/" className="mt-4 inline-block text-sm text-orange-700 hover:underline">
         Back to the shop
       </Link>
     </div>
@@ -89,7 +89,7 @@ const Dashboard = () => {
   if (!user.roles?.some((role) => STAFF_ROLES.includes(role))) return <NoAccess />;
 
   return (
-    <div className="min-h-screen bg-gray-50 md:flex">
+    <div className="min-h-screen bg-canvas md:flex">
       <div className="md:hidden flex items-center justify-between bg-gray-900 text-white px-4 py-3">
         <img src={assets.logoNameLight} alt="Monkedition" className="h-7" />
         <button
@@ -116,7 +116,7 @@ const Dashboard = () => {
               end={end}
               onClick={() => setMenuOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${isActive ? "bg-orange-300 text-black font-medium" : "hover:bg-gray-800 hover:text-white"}`
+                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${isActive ? "bg-orange-400 text-black font-medium" : "hover:bg-gray-800 hover:text-white"}`
               }
             >
               <Icon className="h-4 w-4" aria-hidden="true" />

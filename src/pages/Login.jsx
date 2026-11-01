@@ -140,7 +140,7 @@
 //   if (isLoading) {
 //     return (
 //       <div className="h-[70vh] flex items-center justify-center">
-//         <Loader2 className="h-8 w-8 animate-spin text-orange-300" />
+//         <Loader2 className="h-8 w-8 animate-spin text-orange-700" />
 //       </div>
 //     );
 //   }
@@ -180,7 +180,7 @@
 //                 type="email"
 //                 autoComplete="email"
 //                 disabled={isSubmitting || isBlocked}
-//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-300 focus:border-orange-300 sm:text-sm ${
+//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-400 focus:border-orange-400 sm:text-sm ${
 //                   errors.email ? "border-red-500" : "border-gray-300"
 //                 }`}
 //                 value={formData.email}
@@ -202,7 +202,7 @@
 //                 type="password"
 //                 autoComplete="current-password"
 //                 disabled={isSubmitting || isBlocked}
-//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-300 focus:border-orange-300 sm:text-sm ${
+//                 className={`appearance-none relative block w-full px-3.5 py-2 border rounded-md focus:outline-none focus:ring-orange-400 focus:border-orange-400 sm:text-sm ${
 //                   errors.password ? "border-red-500" : "border-gray-300"
 //                 }`}
 //                 value={formData.password}
@@ -218,7 +218,7 @@
 //           <button
 //             type="submit"
 //             disabled={isSubmitting || isBlocked}
-//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-orange-300 hover:bg-orange-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-300 disabled:opacity-50 disabled:cursor-not-allowed"
+//             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-black bg-orange-400 hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 disabled:opacity-50 disabled:cursor-not-allowed"
 //           >
 //             {isSubmitting ? (
 //               <Loader2 className="h-5 w-5 animate-spin" />
@@ -230,11 +230,11 @@
 //           <div className="text-center mt-4">
 //             <Link
 //               to="/signup"
-//               className="text-sm text-gray-400 hover:text-orange-400"
+//               className="text-sm text-gray-400 hover:text-orange-800"
 //               tabIndex={isSubmitting || isBlocked ? -1 : 0}
 //             >
 //               Create a new account?{" "}
-//               <span className="font-medium text-orange-400">Sign Up</span>
+//               <span className="font-medium text-orange-700">Sign Up</span>
 //             </Link>
 //           </div>
 //         </form>
@@ -401,7 +401,7 @@ function Login() {
     return (
       <div className="min-h-screen flex items-center justify-center  ">
         <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
+          <Loader2 className="h-12 w-12 animate-spin text-orange-700" />
           <p className="text-gray-600 text-sm">Loading...</p>
         </div>
       </div>
@@ -409,7 +409,7 @@ function Login() {
   }
 
   return (
-    <div className="min-h-screen flex  justify-center bg-white px-4 py-8  sm:py-12">
+    <div className="min-h-screen flex  justify-center bg-canvas px-4 py-8  sm:py-12">
       <div className="w-full max-w-sm sm:max-w-md space-y-6 sm:space-y-8">
         {/* Card Container */}
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg border border-grey/10   p-6 sm:p-8  bg-gradient-to-br">
@@ -431,8 +431,8 @@ function Login() {
 
           {isBlocked && (
             <div className="mb-4 sm:mb-6 flex items-start space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
-              <AlertCircle className="h-5 w-5 text-orange-300 flex-shrink-0 mt-0.5" />
-              <p className="text-orange-400 text-sm leading-relaxed">
+              <AlertCircle className="h-5 w-5 text-orange-700 flex-shrink-0 mt-0.5" />
+              <p className="text-orange-700 text-sm leading-relaxed">
                 Too many login attempts. Please try again in{" "}
                 {Math.floor(blockTimer / 60)}:
                 {String(blockTimer % 60).padStart(2, "0")} minutes.
@@ -457,7 +457,7 @@ function Login() {
                   type="email"
                   autoComplete="email"
                   disabled={isSubmitting || isBlocked}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-300 focus:border-orange-400 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-500 transition-colors duration-200 ${
                     errors.email 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -490,7 +490,7 @@ function Login() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   disabled={isSubmitting || isBlocked}
-                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-300 focus:border-orange-400 transition-colors duration-200 ${
+                  className={`block w-full pl-10 pr-10 py-3 border rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-400 focus:border-orange-500 transition-colors duration-200 ${
                     errors.password 
                       ? "border-red-300 bg-red-50" 
                       : "border-gray-300 bg-white hover:border-gray-400"
@@ -519,7 +519,7 @@ function Login() {
                 </p>
               )}
               <div className="text-right">
-                <Link to="/forgot-password" className="text-xs text-orange-500 hover:underline">
+                <Link to="/forgot-password" className="text-xs text-orange-700 hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -529,7 +529,7 @@ function Login() {
             <button
               type="submit"
               disabled={isSubmitting || isBlocked}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold bg-orange-300 text-black bg-gradient-to-r focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl text-sm font-semibold bg-orange-400 text-black bg-gradient-to-r focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               {isSubmitting ? (
                 <>
@@ -569,7 +569,7 @@ function Login() {
               Don't have an account?{" "}
               <Link
                 to="/signup"
-                className="font-semibold text-orange-300 hover:text-orange-400 transition-colors duration-200"
+                className="font-semibold text-orange-700 hover:text-orange-800 transition-colors duration-200"
                 tabIndex={isSubmitting || isBlocked ? -1 : 0}
               >
                 Sign up

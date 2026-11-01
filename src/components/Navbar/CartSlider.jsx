@@ -118,7 +118,7 @@ function CartSlider({ cartVisible, setCartVisible }) {
       <div className="px-5 text-2xl">
         <div
           onClick={() => setCartVisible(false)}
-          className="w-10 h-10 mb-5 bg-orange-300 cursor-pointer flex items-center justify-center group rounded-r-full"
+          className="w-10 h-10 mb-5 bg-orange-400 cursor-pointer flex items-center justify-center group rounded-r-full"
         >
           <img
             src={assets.cancel}

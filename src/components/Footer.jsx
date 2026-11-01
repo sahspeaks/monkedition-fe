@@ -7,16 +7,16 @@ function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-neutral-50 text-neutral-800 font-sans">
+    <footer className="bg-canvas text-neutral-800 font-sans">
       
       {/* Main Footer Content */}
-      <div className="container mx-auto px-6 py-16">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
+      <div className="container mx-auto px-5 md:px-6 py-10 md:py-16">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 md:gap-12">
           
           {/* Brand & Description */}
           <div className="col-span-2 lg:col-span-1">
-            <div className="mb-4">
-              <img src={assets.logoFull} alt="Monkedition" className="h-28 w-auto" />
+            <div className="mb-3 md:mb-4">
+              <img src={assets.logoFull} alt="Monkedition" className="h-24 md:h-28 w-auto" />
             </div>
             <p className="text-sm text-neutral-600 leading-relaxed max-w-sm">
               Your go-to destination for trendy streetwear that blends comfort, style, and individuality. 
@@ -26,8 +26,8 @@ function Footer() {
           
           {/* COMPANY Links */}
           <div>
-            <h3 className="text-lg font-bold mb-5 tracking-wide">Company</h3>
-            <ul className="space-y-3 text-sm">
+            <h3 className="text-lg font-bold mb-3 md:mb-5 tracking-wide">Company</h3>
+            <ul className="space-y-2 md:space-y-3 text-sm">
               {[
                 { to: "/", label: "Home" },
                 { to: "/about", label: "About Us" },
@@ -48,8 +48,8 @@ function Footer() {
           
           {/* MORE INFO Links */}
           <div>
-            <h3 className="text-lg font-bold mb-5 tracking-wide">More Info</h3>
-            <ul className="space-y-3 text-sm">
+            <h3 className="text-lg font-bold mb-3 md:mb-5 tracking-wide">More Info</h3>
+            <ul className="space-y-2 md:space-y-3 text-sm">
               {[
                 { to: "/privacy", label: "Privacy Policy" },
                 { to: "/terms", label: "Terms & Conditions" },
@@ -70,10 +70,10 @@ function Footer() {
 
           {/* Social & Contact */}
           <div className="col-span-2 lg:col-span-1">
-            <h3 className="text-lg font-bold mb-5 tracking-wide">Stay Connected</h3>
+            <h3 className="text-lg font-bold mb-3 md:mb-5 tracking-wide">Stay Connected</h3>
 
             {/* Email */}
-            <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
+            <div className="flex items-center gap-2 text-sm text-neutral-600 mb-3 md:mb-4">
               <Mail size={16} className="shrink-0" />
               <a 
                 href="mailto:monkedition@gmail.com" 
@@ -111,7 +111,7 @@ function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-neutral-200">
-        <div className="container mx-auto px-6 py-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-neutral-600 text-sm">
+        <div className="container mx-auto px-5 md:px-6 pt-5 pb-24 sm:pb-5 md:py-6 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4 text-neutral-600 text-sm">
           <p className="text-center sm:text-left">
             © {currentYear} <span className="font-semibold text-neutral-800">Monkedition</span>. All rights reserved.
           </p>

@@ -5,7 +5,7 @@ import { Badge, Card, Notice, Page, Spinner, rupees, useLoad } from "../ui";
 const Stat = ({ label, value, to, warn }) => (
   <Link
     to={to}
-    className={`block bg-white border rounded-xl p-4 hover:shadow-sm ${warn ? "border-orange-300" : "border-gray-200"}`}
+    className={`block bg-white border rounded-xl p-4 hover:shadow-sm ${warn ? "border-orange-400" : "border-gray-200"}`}
   >
     <p className="text-sm text-gray-500">{label}</p>
     <p className={`mt-1 text-2xl font-semibold ${warn ? "text-orange-700" : "text-gray-900"}`}>{value}</p>

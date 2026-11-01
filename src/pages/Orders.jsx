@@ -273,7 +273,7 @@ const Orders = () => {
                                   type="button"
                                   disabled={payingOrder === order._id}
                                   onClick={() => handlePay(order)}
-                                  className="px-4 py-2 rounded-lg text-sm font-semibold bg-orange-300 text-black hover:bg-orange-400 disabled:opacity-50"
+                                  className="px-4 py-2 rounded-lg text-sm font-semibold bg-orange-400 text-black hover:bg-orange-500 disabled:opacity-50"
                                 >
                                   {payingOrder === order._id ? "Opening payment..." : "Pay now"}
                                 </button>
@@ -411,7 +411,7 @@ const Orders = () => {
                                     href={order.trackingUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-orange-500 hover:underline"
+                                    className="text-orange-700 hover:underline"
                                   >
                                     Track your parcel
                                   </a>
@@ -450,7 +450,7 @@ const Orders = () => {
                               </div>
                               <Link
                                 to={`/orders/${order.orderId}/receipt`}
-                                className="inline-block pt-2 text-sm text-orange-600 hover:underline"
+                                className="inline-block pt-2 text-sm text-orange-700 hover:underline"
                               >
                                 View receipt
                               </Link>
