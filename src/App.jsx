@@ -20,7 +20,6 @@ import Product from "./pages/Product";
 import Navbar from "./components/Navbar/Navbar";
 import { CollectionsProvider } from "./context/CollectionsContext";
 import Footer from "./components/Footer";
-import SearchBar from "./components/Navbar/SearchBar";
 import { CartProvider } from "./context/CartContext";
 import PlaceOrder from "./pages/PlaceOrder";
 import { NewAuthProvider, useAuth } from "./context/NewAuthContext";
@@ -34,6 +33,7 @@ import {
 } from "./components/PolicyComponents";
 
 import SuccessPage from "./pages/SuccessPage";
+import Search from "./pages/Search";
 import Receipt from "./pages/Receipt";
 import Unsubscribe from "./pages/Unsubscribe";
 import ScrollToTop from "./components/ScrollTop";
@@ -96,7 +96,6 @@ function App() {
                 <ShopChrome>
                   <Navbar />
                   <BottomNavBar/>
-                  <SearchBar />
                 </ShopChrome>
                 <Routes>
                   <Route
@@ -131,6 +130,7 @@ function App() {
                     }
                   />
                   <Route path="/unsubscribe" element={<Unsubscribe />} />
+                  <Route path="/search" element={<Search />} />
                   <Route
                     path="/successPage/:qiKinkOrderId"
                     element={<SuccessPage />}

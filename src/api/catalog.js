@@ -86,6 +86,20 @@ export const getAllProducts = async () => {
   return (await allPages("/api/v2/products")).map((item) => toLegacyListItem(item, byId));
 };
 
+const SUGGESTIONS = 5;
+
+/** The first few matches, for the search box. */
+export const getProductSuggestions = async (query) => {
+  const data = await api.get(`/api/v2/products?q=${encodeURIComponent(query)}&size=${SUGGESTIONS}`, { auth: false });
+  return (data.items ?? []).map((item) => toLegacyListItem(item));
+};
+
+/** Every match across the shop. */
+export const searchProducts = async (query) => {
+  const byId = await categoriesById();
+  return (await allPages(`/api/v2/products?q=${encodeURIComponent(query)}`)).map((item) => toLegacyListItem(item, byId));
+};
+
 /** A product by id or slug, with its recommendations, as a v1 product. */
 export const getProduct = async (idOrSlug) => {
   const [detail, recommendations] = await Promise.all([

@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { assets } from "../../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import SlidBarMenu from "./SlidBarMenu";
+import SiteSearch from "./SiteSearch";
 import Topbar from "./Topbar";
 import { useCartContext } from "../../context/CartContext";
 import CartSlider from "./CartSlider";
@@ -33,6 +34,7 @@ function Navbar() {
 
       {/* Right side */}
       <div className="flex items-center gap-6">
+        <SiteSearch />
         {/* Profile Icon with Dropdown - Desktop */}
         <div className="hidden sm:block group relative">
           {user ? (
