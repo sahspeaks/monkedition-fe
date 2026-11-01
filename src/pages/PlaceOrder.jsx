@@ -204,7 +204,7 @@
 //         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
 //         amount: (orderPayload.totalAmount * 100).toString(),
 //         currency: "INR",
-//         name: "Moons Flare",
+//         name: "Monkedition",
 //         description: "Order Payment",
 //         image:
 //           "https://res.cloudinary.com/dra8tbz4z/image/upload/v1749202863/MF/L_pqzxzz.png",
@@ -1009,7 +1009,7 @@ const PlaceOrder = () => {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID.toString(),
         amount: (orderPayload.totalAmount * 100).toString(),
         currency: "INR",
-        name: "Moons Flare",
+        name: "Monkedition",
         description: "Order Payment",
         image:
           "https://res.cloudinary.com/dra8tbz4z/image/upload/v1749202863/MF/L_pqzxzz.png",
@@ -1182,7 +1182,7 @@ const PlaceOrder = () => {
         amount: String(order.payment.amount.amount),
         currency: "INR",
         order_id: order.payment.gatewayOrderId,
-        name: "Moons Flare",
+        name: "Monkedition",
         description: `Order ${order.orderNumber}`,
         image: "https://res.cloudinary.com/dra8tbz4z/image/upload/v1749202863/MF/L_pqzxzz.png",
         prefill: {

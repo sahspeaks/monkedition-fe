@@ -1,4 +1,4 @@
-# Moonsflare - E-commerce Platform
+# Monkedition - E-commerce Platform
 
 A modern, responsive e-commerce platform built with React for selling trendy streetwear and anime-inspired fashion items. The application features a complete shopping experience with user authentication, cart management, wishlist functionality, and integrated payment processing.
 

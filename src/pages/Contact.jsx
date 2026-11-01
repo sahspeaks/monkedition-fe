@@ -19,13 +19,13 @@ function Contact() {
         <img
           className="w-[40vw] h-[40vw] rounded-lg"
           src={assets.contact_img}
-          alt="Moonsflare Contact"
+          alt="Monkedition Contact"
         />
 
         <div className="flex flex-col justify-center items-start gap-6">
           <p className="font-semibold text-xl text-gray-600">Get in Touch</p>
           <p className="text-gray-500">
-            Moonsflare
+            Monkedition
             <br />
             Tirupati, Andhra Pradesh
             <br />
@@ -43,7 +43,7 @@ function Contact() {
           </p>
           <p className="text-gray-500">
             Want to be part of something amazing? Explore opportunities to join
-            our creative team at Moonsflare.
+            our creative team at Monkedition.
           </p>
           <button
             onClick={handleOnClick}

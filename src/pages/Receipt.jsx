@@ -38,7 +38,7 @@ const Receipt = () => {
 
       <header className="flex flex-wrap justify-between gap-4 border-b border-gray-200 pb-4 mb-4">
         <div>
-          <h1 className="text-xl font-semibold">Moons Flare</h1>
+          <h1 className="text-xl font-semibold">Monkedition</h1>
           <p className="text-gray-600">store.moonsflare@gmail.com</p>
         </div>
         <div className="text-right">

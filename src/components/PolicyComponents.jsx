@@ -44,7 +44,7 @@ const ReturnPolicy = () => {
           <Title text1={"Return"} text2={" Policy"} />
         </div>
         <p className="text-gray-600 mb-6">
-          At MOONS FLARE, we are committed to providing you with high-quality
+          At MONKEDITION, we are committed to providing you with high-quality
           streetwear clothing. We understand that occasionally, you may need to
           return an item or seek a refund.
         </p>
@@ -303,7 +303,7 @@ const TermsOfService = () => {
       >
         <div className="space-y-3 text-gray-600">
           <p>
-            Welcome to MOONS FLARE. By using our exchange portal or placing any
+            Welcome to MONKEDITION. By using our exchange portal or placing any
             orders, you agree to adhere to these terms without modifications.
           </p>
         </div>

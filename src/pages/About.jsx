@@ -14,12 +14,12 @@ function About() {
         <img
           className="w-full md:max-w-[456px] rounded-lg"
           src={assets.about_img}
-          alt="Moonsflare Fashion"
+          alt="Monkedition Fashion"
         />
         <div className="flex flex-col justify-center gap-6 md:w-2/4 text-gray-600 text-justify">
           <p>
-            Welcome to Moonsflare, where style meets comfort and affordability.
-            We're thrilled to have you here! At Moonsflare, we believe that
+            Welcome to Monkedition, where style meets comfort and affordability.
+            We're thrilled to have you here! At Monkedition, we believe that
             fashion should be as unique as the people wearing it. That's why we
             specialize in creating high-quality t-shirts and streetwear – from
             classic fits to oversized and acid-washed styles – designed to make
@@ -29,11 +29,11 @@ function About() {
             Our collection is tailored for the new generation – the bold, the
             creative, and the unapologetically stylish. Whether you're an anime
             enthusiast, a Marvel or DC superfan, or someone who loves trendy,
-            statement-making apparel, Moonsflare has something for you.
+            statement-making apparel, Monkedition has something for you.
           </p>
           <b className="text-gray-800">Our Mission</b>
           <p>
-            At Moonsflare, our mission is simple: to provide you with unique
+            At Monkedition, our mission is simple: to provide you with unique
             designs that let your personality shine while offering unbeatable
             comfort and value. With prices starting at just ₹800, we're
             committed to bringing you exceptional designs without breaking the
@@ -59,7 +59,7 @@ function About() {
         <div className="border px-5 md:px-8 py-5 sm:py-10 flex flex-col gap-5">
           <b className="text-lg">Our Story</b>
           <p className="text-gray-600 text-justify">
-            Moonsflare was founded by a team of four passionate individuals who
+            Monkedition was founded by a team of four passionate individuals who
             wear many hats – designers, developers, and dreamers. United by a
             shared vision, we set out to create a brand that resonates with
             today's youth. Our journey began with an idea, fueled by creativity
