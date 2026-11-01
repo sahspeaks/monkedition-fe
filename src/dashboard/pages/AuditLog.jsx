@@ -18,7 +18,7 @@ const AuditLog = () => {
               empty="No changes yet."
               columns={[
                 { label: "When", render: (a) => <span className="whitespace-nowrap">{dateTime(a.at)}</span> },
-                { label: "Staff ID", render: (a) => <span className="text-xs text-gray-500">{a.actorId}</span> },
+                { label: "Staff", render: (a) => <span className="break-all">{a.actorEmail ?? a.actorId ?? "—"}</span> },
                 { label: "Action", render: (a) => a.method },
                 { label: "What", render: (a) => <span className="break-all">{a.path.replace("/api/v2/admin", "")}</span> },
                 { label: "Result", render: (a) => (a.status < 400 ? "Done" : `Failed (${a.status})`) },
