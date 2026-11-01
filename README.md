@@ -362,7 +362,7 @@ This project is proprietary software. All rights reserved.
 
 For support and inquiries:
 
-- Email: store.moonsflare@gmail.com
+- Email: monkedition@gmail.com
 - Instagram: [@moonsflaredotcom](https://instagram.com/moonsflaredotcom)
 - Facebook: [@moonsflaredotcom](https://facebook.com/moonsflaredotcom)
 

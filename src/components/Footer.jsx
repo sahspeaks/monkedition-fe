@@ -76,10 +76,10 @@ function Footer() {
             <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
               <Mail size={16} className="shrink-0" />
               <a 
-                href="mailto:store.moonsflare@gmail.com" 
+                href="mailto:monkedition@gmail.com" 
                 className="hover:text-black transition-colors duration-200"
               >
-                store.moonsflare@gmail.com
+                monkedition@gmail.com
               </a>
             </div>
 
