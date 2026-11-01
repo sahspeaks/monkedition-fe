@@ -151,10 +151,14 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   const panel = (
     <div
       ref={box}
-      className={onPhone ? "fixed left-4 right-4 top-16 z-[60]" : "relative w-64 lg:w-80"}
+      className={
+        onPhone
+          ? "fixed inset-x-0 top-16 z-[60] bg-white px-4 pt-2 pb-4 shadow-lg rounded-b-2xl"
+          : "relative w-64 lg:w-80"
+      }
     >
-      <form onSubmit={submit} role="search" className="flex items-center gap-2 border border-gray-300 rounded-full bg-white px-3 py-1.5">
-        <Search className="w-4 h-4 shrink-0 text-gray-500" aria-hidden="true" />
+      <form onSubmit={submit} role="search" className={`flex items-center gap-3 border-2 border-gray-200 rounded-xl bg-gray-50 px-4 transition-colors focus-within:border-orange-300 focus-within:bg-white ${onPhone ? "py-3" : "py-2"}`}>
+        <Search className="w-5 h-5 shrink-0 text-gray-700" aria-hidden="true" />
         <input
           ref={input}
           type="search"
@@ -173,7 +177,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           }}
           onFocus={() => setShowList(true)}
           onKeyDown={onKeyDown}
-          className="flex-1 min-w-0 text-sm font-normal outline-none bg-transparent [&::-webkit-search-cancel-button]:hidden"
+          className="flex-1 min-w-0 text-base sm:text-sm font-normal text-gray-900 placeholder:text-gray-500 outline-none bg-transparent [&::-webkit-search-cancel-button]:hidden"
         />
         <button
           type="button"
@@ -185,7 +189,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
             else close();
           }}
         >
-          <X className="w-4 h-4 text-gray-500" aria-hidden="true" />
+          <X className="w-5 h-5 text-gray-700" aria-hidden="true" />
         </button>
       </form>
 
@@ -194,7 +198,9 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           id={listId}
           role="listbox"
           aria-label="Suggestions"
-          className="absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden font-normal"
+          className={`bg-white rounded-xl overflow-hidden font-normal mt-2 ${
+            onPhone ? "border border-gray-100" : "absolute left-0 right-0 border border-gray-200 shadow-lg"
+          }`}
         >
           {suggestions.map((item, index) => (
             <button
@@ -224,7 +230,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
             <button
               type="button"
               onClick={seeAll}
-              className="w-full px-3 py-2 text-sm text-left text-orange-600 border-t border-gray-100 hover:bg-orange-50"
+              className="w-full px-3 py-3 text-sm font-semibold text-center text-black bg-orange-300 hover:bg-orange-400 transition-colors"
             >
               See all results for “{query}”
             </button>
@@ -239,7 +245,13 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   return onPhone ? (
     <>
       {trigger}
-      {createPortal(panel, document.body)}
+      {createPortal(
+        <>
+          <div className="fixed inset-0 z-[59] bg-black/40" aria-hidden="true" />
+          {panel}
+        </>,
+        document.body,
+      )}
     </>
   ) : (
     panel
