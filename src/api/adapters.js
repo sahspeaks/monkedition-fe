@@ -42,6 +42,7 @@ export const toLegacyProduct = (detail, recommendations = [], reviews = []) => (
   reviews: reviews.map((review) => ({
     rating: review.rating,
     comment: review.comment,
+    photos: review.photos ?? [],
     user: { firstName: review.authorName },
   })),
   stock: detail.inStock ? detail.unitsLeft ?? Number.MAX_SAFE_INTEGER : 0,

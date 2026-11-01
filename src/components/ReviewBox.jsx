@@ -39,6 +39,21 @@ function ReviewBox({ review }) {
             {review.comment}
           </p>
 
+          {review.photos?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {review.photos.map((url, index) => (
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={url}
+                    alt={`Customer photo ${index + 1}`}
+                    loading="lazy"
+                    className="h-20 w-20 rounded-lg object-cover border border-gray-200"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+
           {/* Star Rating */}
           <div className="flex items-center gap-1">
             {Array(filledStars)
