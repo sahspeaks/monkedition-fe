@@ -153,12 +153,12 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   const panel = (
     <div
       ref={box}
-      className={`fixed z-[60] inset-x-4 top-20 sm:top-[12vh] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[640px] overflow-hidden border border-white/20 bg-neutral-900/70 text-white shadow-2xl backdrop-blur-2xl backdrop-saturate-150 ${
+      className={`fixed z-[60] inset-x-4 top-20 sm:top-[12vh] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[640px] overflow-hidden border border-gray-700/10 bg-gray-800/40 text-white shadow-2xl backdrop-blur-lg ${
         listVisible ? "rounded-[28px]" : "rounded-full"
       }`}
     >
       <form onSubmit={submit} role="search" className="flex items-center gap-3 px-5 py-4">
-        <Search className="w-6 h-6 shrink-0 text-white/80" aria-hidden="true" />
+        <Search className="w-6 h-6 shrink-0 text-white" aria-hidden="true" />
         <input
           ref={input}
           type="search"
@@ -177,7 +177,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           }}
           onFocus={() => setShowList(true)}
           onKeyDown={onKeyDown}
-          className="flex-1 min-w-0 bg-transparent text-xl font-normal text-white caret-orange-300 placeholder:text-white/60 outline-none [&::-webkit-search-cancel-button]:hidden"
+          className="flex-1 min-w-0 bg-transparent text-xl font-normal text-white caret-orange-300 placeholder:text-white/90 outline-none [&::-webkit-search-cancel-button]:hidden"
         />
         <button
           type="button"
@@ -188,7 +188,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
             close();
           }}
         >
-          <X className="w-5 h-5 text-white/70 hover:text-white" aria-hidden="true" />
+          <X className="w-5 h-5 text-white" aria-hidden="true" />
         </button>
       </form>
 
@@ -211,20 +211,20 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
             >
               <img src={item.image} alt="" className="w-11 h-11 rounded-xl object-cover bg-white/10 shrink-0" />
               <span className="flex-1 min-w-0 text-base truncate">{item.name}</span>
-              <span className="text-sm text-white/70 whitespace-nowrap">₹{item.price}</span>
+              <span className="text-sm text-white whitespace-nowrap">₹{item.price}</span>
             </button>
           ))}
           {status === "loading" && suggestions.length === 0 && (
-            <p className="px-3 py-3 text-sm text-white/70">Searching...</p>
+            <p className="px-3 py-3 text-sm text-white">Searching...</p>
           )}
           {status === "done" && suggestions.length === 0 && (
-            <p className="px-3 py-3 text-sm text-white/70">No products found for “{query}”.</p>
+            <p className="px-3 py-3 text-sm text-white">No products found for “{query}”.</p>
           )}
           {status === "failed" && (
-            <p className="px-3 py-3 text-sm text-white/70">Search is not available right now. Press Enter to try again.</p>
+            <p className="px-3 py-3 text-sm text-white">Search is not available right now. Press Enter to try again.</p>
           )}
           {suggestions.length > 0 && (
-            <button type="button" onClick={seeAll} className={`${rowClass(false)} text-sm font-medium text-orange-300`}>
+            <button type="button" onClick={seeAll} className={`${rowClass(false)} text-sm font-semibold text-white`}>
               <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
               See all results for “{query}”
             </button>
