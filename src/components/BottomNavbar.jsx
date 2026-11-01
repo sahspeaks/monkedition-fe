@@ -811,18 +811,6 @@ function BottomNavBar() {
                 <div className="bg-gray-800/90 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/10">
                     <div className="flex items-center justify-center space-x-2">
 
-                        {/* Search */}
-                        <SiteSearch
-                            onPhone
-                            onOpenChange={setSearching}
-                            triggerClassName={(active) =>
-                                `flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${active
-                                    ? 'bg-orange-400 text-black shadow-lg'
-                                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                                }`
-                            }
-                        />
-
                         {/* Home */}
                         <NavLink
                             to="/"
@@ -840,6 +828,18 @@ function BottomNavBar() {
                                 }}
                             />
                         </NavLink>
+
+                        {/* Search */}
+                        <SiteSearch
+                            onPhone
+                            onOpenChange={setSearching}
+                            triggerClassName={(active) =>
+                                `flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${active
+                                    ? 'bg-orange-400 text-black shadow-lg'
+                                    : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                                }`
+                            }
+                        />
 
                         {/* Collections */}
                         <button
