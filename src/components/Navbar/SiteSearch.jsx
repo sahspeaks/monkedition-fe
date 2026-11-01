@@ -25,6 +25,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   const [active, setActive] = useState(-1);
   const box = useRef(null);
   const input = useRef(null);
+  const triggerButton = useRef(null);
   const query = text.trim();
 
   const [showList, setShowList] = useState(false);
@@ -59,7 +60,8 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   useEffect(() => {
     if (!open) return undefined;
     const onClickAway = (e) => {
-      if (!box.current?.contains(e.target)) {
+      // The bottom bar's button closes it by itself.
+      if (!box.current?.contains(e.target) && !triggerButton.current?.contains(e.target)) {
         setShowList(false);
         if (stayOpen) return;
         close();
@@ -130,18 +132,19 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
     }
   };
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        aria-label="Search products"
-        onClick={() => setOpen(true)}
-        className={triggerClassName ? triggerClassName(onResults) : "flex items-center"}
-      >
-        <Search className={onPhone ? "w-6 h-6" : "w-5 h-5 text-gray-700"} aria-hidden="true" />
-      </button>
-    );
-  }
+  const trigger = (
+    <button
+      ref={triggerButton}
+      type="button"
+      aria-label="Search products"
+      onClick={() => (open ? close() : setOpen(true))}
+      className={triggerClassName ? triggerClassName(open || onResults) : "flex items-center"}
+    >
+      <Search className={onPhone ? "w-6 h-6" : "w-5 h-5 text-gray-700"} aria-hidden="true" />
+    </button>
+  );
+
+  if (!open) return trigger;
 
   const listVisible = showList && query.length >= MIN_LENGTH;
 
@@ -233,7 +236,14 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
 
   // The bottom navigation blurs its background, which would trap a fixed panel
   // inside it, so the phone's panel renders at the top of the page instead.
-  return onPhone ? createPortal(panel, document.body) : panel;
+  return onPhone ? (
+    <>
+      {trigger}
+      {createPortal(panel, document.body)}
+    </>
+  ) : (
+    panel
+  );
 }
 
 export default SiteSearch;
