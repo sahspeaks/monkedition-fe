@@ -19,7 +19,7 @@ const products = [
   { _id: "c", name: "Levi Hoodie", price: 2600, size: ["S"] },
 ];
 const names = (list) => list.map((product) => product._id).join("");
-const none = { size: null, price: null, q: "" };
+const none = { size: null, price: null };
 
 test("the page's own category is selected when the query names none", () => {
   const filters = readFilters(new URLSearchParams(), "Men", "Anime Verse");
@@ -35,8 +35,7 @@ test("an emptied selection stays empty, instead of falling back to the page's", 
 
 test("every filter applies together, in any order", () => {
   assert.equal(names(filterProducts(products, { ...none, size: "M" })), "ab");
-  assert.equal(names(filterProducts(products, { ...none, q: "levi" })), "ac");
-  assert.equal(names(filterProducts(products, { ...none, q: "levi", size: "S", price: [500, 999] })), "a");
+  assert.equal(names(filterProducts(products, { size: "S", price: [500, 999] })), "a");
   assert.equal(names(filterProducts(products, { ...none, price: [2500] })), "c");
 });
 
@@ -59,8 +58,8 @@ test("clearing a gender clears its fandoms and leaves others", () => {
 });
 
 test("the query keeps what was not changed and drops what was cleared", () => {
-  const next = withFilters(new URLSearchParams("q=levi&size=M"), { size: null, fandoms: [] });
-  assert.equal(next.get("q"), "levi");
+  const next = withFilters(new URLSearchParams("price=500-999&size=M"), { size: null, fandoms: [] });
+  assert.equal(next.get("price"), "500-999");
   assert.equal(next.has("size"), false);
   assert.equal(next.get("fandoms"), "");
 });
