@@ -833,7 +833,7 @@ function BottomNavBar() {
                                 }`}
                         >
                             <span
-                                className="w-8 h-8 bg-current"
+                                className="w-8 h-8 bg-current -translate-y-[3px]"
                                 style={{
                                     WebkitMask: `url(${assets.logoMark}) center / contain no-repeat`,
                                     mask: `url(${assets.logoMark}) center / contain no-repeat`,
