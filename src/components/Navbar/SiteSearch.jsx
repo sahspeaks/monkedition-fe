@@ -9,9 +9,10 @@ import { getProductSuggestions } from "../../api/catalog";
 const MIN_LENGTH = 2;
 
 /**
+ * A frosted glass bar floating over the page, like Spotlight. It sits near the
+ * top of the screen, where a phone's keyboard cannot cover it.
  * @param {{ onPhone?: boolean, triggerClassName?: (active: boolean) => string }} props
- *   onPhone: opened from the bottom navigation. The box goes at the top of the
- *   screen, where the phone's keyboard cannot cover it, and stays closed until tapped.
+ *   onPhone: the button is the bottom navigation's.
  */
 function SiteSearch({ onPhone = false, triggerClassName }) {
   const listId = useId();
@@ -32,30 +33,27 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   const onResults = location.pathname === "/search";
   const searched = onResults ? params.get("q") ?? "" : "";
 
-  // Only the desktop box stays open on the results page.
-  const stayOpen = onResults && !onPhone;
-
   const close = () => {
     setOpen(false);
     setActive(-1);
   };
 
-  // Every page change settles the box: on the results page it stays open and
-  // shows what was searched for; anywhere else it closes.
+  // Every page change closes it; on the results page it remembers the words.
   useEffect(() => {
     setShowList(false);
     setSuggestions([]);
     setStatus("idle");
     setActive(-1);
     if (onResults) setText(searched);
-    setOpen(onResults && !onPhone);
-  }, [location.pathname, location.search, onResults, searched, onPhone]);
+    setOpen(false);
+  }, [location.pathname, location.search, onResults, searched]);
 
-  // Only when someone opens it: focusing the box on the results page would
-  // spread the suggestions over the results.
   useEffect(() => {
-    if (open && (onPhone || !onResults)) input.current?.focus();
-  }, [open, onResults, onPhone]);
+    if (open) {
+      input.current?.focus();
+      setShowList(true);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -63,13 +61,12 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
       // The bottom bar's button closes it by itself.
       if (!box.current?.contains(e.target) && !triggerButton.current?.contains(e.target)) {
         setShowList(false);
-        if (stayOpen) return;
         close();
       }
     };
     document.addEventListener("mousedown", onClickAway);
     return () => document.removeEventListener("mousedown", onClickAway);
-  }, [open, stayOpen]);
+  }, [open]);
 
   // A newer word makes older answers irrelevant, however late they arrive.
   useEffect(() => {
@@ -113,7 +110,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   const onKeyDown = (e) => {
     if (e.key === "Escape") {
       setShowList(false);
-      if (!stayOpen) close();
+      close();
     } else if (e.key === "ArrowDown" && suggestions.length) {
       e.preventDefault();
       setActive((index) => (index + 1) % suggestions.length);
@@ -148,17 +145,20 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
 
   const listVisible = showList && query.length >= MIN_LENGTH;
 
+  const rowClass = (highlighted) =>
+    `w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left transition-colors ${
+      highlighted ? "bg-white/20" : "hover:bg-white/10"
+    }`;
+
   const panel = (
     <div
       ref={box}
-      className={
-        onPhone
-          ? "fixed inset-x-0 top-16 z-[60] bg-white px-4 pt-2 pb-4 shadow-lg rounded-b-2xl"
-          : "relative w-64 lg:w-80"
-      }
+      className={`fixed z-[60] inset-x-4 top-20 sm:top-[12vh] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[640px] overflow-hidden border border-white/20 bg-neutral-900/70 text-white shadow-2xl backdrop-blur-2xl backdrop-saturate-150 ${
+        listVisible ? "rounded-[28px]" : "rounded-full"
+      }`}
     >
-      <form onSubmit={submit} role="search" className={`flex items-center gap-3 border-2 border-gray-200 rounded-xl bg-gray-50 px-4 transition-colors focus-within:border-orange-300 focus-within:bg-white ${onPhone ? "py-3" : "py-2"}`}>
-        <Search className="w-5 h-5 shrink-0 text-gray-700" aria-hidden="true" />
+      <form onSubmit={submit} role="search" className="flex items-center gap-3 px-5 py-4">
+        <Search className="w-6 h-6 shrink-0 text-white/80" aria-hidden="true" />
         <input
           ref={input}
           type="search"
@@ -177,7 +177,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           }}
           onFocus={() => setShowList(true)}
           onKeyDown={onKeyDown}
-          className="flex-1 min-w-0 text-base sm:text-sm font-normal text-gray-900 placeholder:text-gray-500 outline-none bg-transparent [&::-webkit-search-cancel-button]:hidden"
+          className="flex-1 min-w-0 bg-transparent text-xl font-normal text-white caret-orange-300 placeholder:text-white/60 outline-none [&::-webkit-search-cancel-button]:hidden"
         />
         <button
           type="button"
@@ -185,11 +185,10 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           onClick={() => {
             setText("");
             setShowList(false);
-            if (stayOpen) input.current?.focus();
-            else close();
+            close();
           }}
         >
-          <X className="w-5 h-5 text-gray-700" aria-hidden="true" />
+          <X className="w-5 h-5 text-white/70 hover:text-white" aria-hidden="true" />
         </button>
       </form>
 
@@ -198,9 +197,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           id={listId}
           role="listbox"
           aria-label="Suggestions"
-          className={`bg-white rounded-xl overflow-hidden font-normal mt-2 ${
-            onPhone ? "border border-gray-100" : "absolute left-0 right-0 border border-gray-200 shadow-lg"
-          }`}
+          className="border-t border-white/15 p-2 max-h-[60vh] overflow-y-auto font-normal"
         >
           {suggestions.map((item, index) => (
             <button
@@ -210,28 +207,25 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
               role="option"
               aria-selected={index === active}
               onClick={() => openProduct(item)}
-              className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-orange-50 ${index === active ? "bg-orange-50" : ""}`}
+              className={rowClass(index === active)}
             >
-              <img src={item.image} alt="" className="w-10 h-10 rounded object-cover bg-gray-100 shrink-0" />
-              <span className="flex-1 min-w-0 text-sm text-gray-800 truncate">{item.name}</span>
-              <span className="text-sm text-gray-600 whitespace-nowrap">₹{item.price}</span>
+              <img src={item.image} alt="" className="w-11 h-11 rounded-xl object-cover bg-white/10 shrink-0" />
+              <span className="flex-1 min-w-0 text-base truncate">{item.name}</span>
+              <span className="text-sm text-white/70 whitespace-nowrap">₹{item.price}</span>
             </button>
           ))}
           {status === "loading" && suggestions.length === 0 && (
-            <p className="px-3 py-3 text-sm text-gray-500">Searching...</p>
+            <p className="px-3 py-3 text-sm text-white/70">Searching...</p>
           )}
           {status === "done" && suggestions.length === 0 && (
-            <p className="px-3 py-3 text-sm text-gray-500">No products found for “{query}”.</p>
+            <p className="px-3 py-3 text-sm text-white/70">No products found for “{query}”.</p>
           )}
           {status === "failed" && (
-            <p className="px-3 py-3 text-sm text-gray-500">Search is not available right now. Press Enter to try again.</p>
+            <p className="px-3 py-3 text-sm text-white/70">Search is not available right now. Press Enter to try again.</p>
           )}
           {suggestions.length > 0 && (
-            <button
-              type="button"
-              onClick={seeAll}
-              className="w-full px-3 py-3 text-sm font-semibold text-center text-black bg-orange-300 hover:bg-orange-400 transition-colors"
-            >
+            <button type="button" onClick={seeAll} className={`${rowClass(false)} text-sm font-medium text-orange-300`}>
+              <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
               See all results for “{query}”
             </button>
           )}
@@ -241,20 +235,12 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   );
 
   // The bottom navigation blurs its background, which would trap a fixed panel
-  // inside it, so the phone's panel renders at the top of the page instead.
-  return onPhone ? (
+  // inside it, so the panel renders at the top of the page instead.
+  return (
     <>
       {trigger}
-      {createPortal(
-        <>
-          <div className="fixed inset-0 z-[59] bg-black/40" aria-hidden="true" />
-          {panel}
-        </>,
-        document.body,
-      )}
+      {createPortal(panel, document.body)}
     </>
-  ) : (
-    panel
   );
 }
 
