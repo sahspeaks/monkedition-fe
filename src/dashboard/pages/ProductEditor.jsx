@@ -70,6 +70,23 @@ const ProductEditor = () => {
     setSaved("");
     setForm((current) => ({ ...current, [field]: value }));
   };
+  // A type's standard weight fills the box, unless someone typed their own.
+  const standardWeight = (typeId) =>
+    taxonomy?.productTypes?.find((type) => type.id === typeId)?.defaultWeightGrams ?? null;
+  const chooseType = (typeId) => {
+    setSaved("");
+    setForm((current) => {
+      const previous = standardWeight(current.productCategory);
+      const untouched = current.weight === "" || current.weight === String(previous ?? "");
+      const next = standardWeight(typeId);
+      return {
+        ...current,
+        productCategory: typeId,
+        weight: untouched ? String(next ?? "") : current.weight,
+      };
+    });
+  };
+
   const toggle = (field, value) =>
     set(field, form[field].includes(value) ? form[field].filter((v) => v !== value) : [...form[field], value]);
 
@@ -131,7 +148,7 @@ const ProductEditor = () => {
       productCategory: form.productCategory,
       price: Number(form.price),
       discountPercentage: Number(form.discountPercentage),
-      weight: Number(form.weight),
+      weight: form.weight === "" ? null : Number(form.weight),
       color: form.color,
       size: form.size,
       skus: sold.map((key) => ({ colorSize: key, sku: form.skuByKey[key].trim() })),
@@ -297,7 +314,7 @@ const ProductEditor = () => {
                 </Select>
               </Field>
               <Field label="Product type">
-                <Select required value={form.productCategory} onChange={(e) => set("productCategory", e.target.value)}>
+                <Select required value={form.productCategory} onChange={(e) => chooseType(e.target.value)}>
                   <option value="">Choose</option>
                   {taxonomy?.productTypes?.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </Select>
@@ -312,8 +329,8 @@ const ProductEditor = () => {
               <Field label="Discount shown (%)" hint="MRP is worked out from this">
                 <Input type="number" required min="0" max="90" value={form.discountPercentage} onChange={(e) => set("discountPercentage", e.target.value)} />
               </Field>
-              <Field label="Weight (grams)">
-                <Input type="number" required min="1" value={form.weight} onChange={(e) => set("weight", e.target.value)} />
+              <Field label="Weight (grams)" hint="Filled in from the product type. Change it if this product differs.">
+                <Input type="number" min="1" step="1" value={form.weight} onChange={(e) => set("weight", e.target.value)} />
               </Field>
             </div>
           </Card>
