@@ -7,8 +7,8 @@ import { Search, X } from "lucide-react";
 import { getProductSuggestions } from "../../api/catalog";
 
 const MIN_LENGTH = 2;
-const PHONE_TOP_GAP = 16;
-const PHONE_BOX_HEIGHT = 64;
+// The box's distance from the top (top-20) plus its height and a small gap.
+const PHONE_LIST_OFFSET = 152;
 
 /**
  * A frosted glass bar floating over the page, like Spotlight. It sits near the
@@ -53,36 +53,39 @@ function SiteSearch({ onPhone = false, triggerClassName, onOpenChange }) {
 
   useEffect(() => {
     if (open) {
-      input.current?.focus();
+      // preventScroll: otherwise Safari shifts the page to "reveal" the box.
+      input.current?.focus({ preventScroll: true });
       setShowList(true);
     }
     onOpenChange?.(open);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // When a phone's keyboard opens, the browser shifts the visible part of the
-  // page, which leaves fixed elements behind. So the box follows what is really
-  // on screen, and the page stays still underneath it.
-  const [visible, setVisible] = useState(null);
+  // How much of the screen the keyboard leaves, so suggestions end above it. Read
+  // on the keyboard opening and closing only: positions reported during a scroll
+  // arrive late on iPhones and make anything that follows them jump.
+  const [visibleHeight, setVisibleHeight] = useState(null);
   useEffect(() => {
     if (!open || !onPhone) return undefined;
     const viewport = window.visualViewport;
-    const measure = () =>
-      setVisible(
-        viewport
-          ? { top: viewport.offsetTop, height: viewport.height }
-          : { top: 0, height: window.innerHeight },
-      );
+    const measure = () => setVisibleHeight(viewport ? viewport.height : window.innerHeight);
     measure();
     viewport?.addEventListener("resize", measure);
-    viewport?.addEventListener("scroll", measure);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      viewport?.removeEventListener("resize", measure);
-      viewport?.removeEventListener("scroll", measure);
-      document.body.style.overflow = overflow;
+    return () => viewport?.removeEventListener("resize", measure);
+  }, [open, onPhone]);
+
+  // A swipe on the page means they are done searching: the box closes and the
+  // page is theirs again. Swipes inside the suggestions scroll the suggestions.
+  useEffect(() => {
+    if (!open || !onPhone) return undefined;
+    const onTouchMove = (e) => {
+      if (box.current?.contains(e.target)) return;
+      setShowList(false);
+      close();
     };
+    document.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => document.removeEventListener("touchmove", onTouchMove);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, onPhone]);
 
   useEffect(() => {
@@ -175,12 +178,9 @@ function SiteSearch({ onPhone = false, triggerClassName, onOpenChange }) {
 
   const listVisible = showList && query.length >= MIN_LENGTH;
 
-  // On a phone, the box is placed within the part of the page actually showing.
-  const phoneStyle =
-    onPhone && visible ? { top: `${visible.top + PHONE_TOP_GAP}px`, bottom: "auto" } : undefined;
   const listStyle =
-    onPhone && visible
-      ? { maxHeight: `${Math.max(120, visible.height - PHONE_TOP_GAP - PHONE_BOX_HEIGHT - 8)}px` }
+    onPhone && visibleHeight
+      ? { maxHeight: `${Math.max(120, visibleHeight - PHONE_LIST_OFFSET)}px` }
       : undefined;
 
   const rowClass = (highlighted) =>
@@ -191,7 +191,6 @@ function SiteSearch({ onPhone = false, triggerClassName, onOpenChange }) {
   const panel = (
     <div
       ref={box}
-      style={phoneStyle}
       className={`fixed z-[60] inset-x-4 top-20 sm:top-[12vh] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[640px] overflow-hidden border border-gray-700/10 bg-gray-800/40 text-white shadow-2xl backdrop-blur-lg ${
         listVisible ? "rounded-[28px]" : "rounded-full"
       }`}
