@@ -117,7 +117,6 @@ const ProductEditor = () => {
   const allImages = [...form.color.flatMap((c) => form.imagesByColour[c] ?? []), ...form.addImages];
   const mainImage = allImages.includes(form.image) ? form.image : allImages[0] ?? "";
   const keys = form.color.flatMap((c) => form.size.map((s) => `${c}-${s}`));
-  const stockBySku = new Map((product?.stockBySku ?? []).map((item) => [item._id, item]));
   const live = !isNew && product?.status !== "ARCHIVED";
 
   const mainBadge = (url) => (
@@ -251,7 +250,7 @@ const ProductEditor = () => {
                 <p className="text-xs text-gray-500">Leave one blank if you do not sell that combination.</p>
                 {keys.map((key) => {
                   const sku = form.skuByKey[key] ?? "";
-                  const item = stockBySku.get(sku);
+                  const item = product?.stockByKey?.[key];
                   return (
                     <div key={key} className="flex items-center gap-3">
                       <span className="w-20 shrink-0 text-sm text-gray-600">{key}</span>
