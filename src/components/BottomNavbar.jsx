@@ -412,6 +412,7 @@ function BottomNavBar() {
     const { CollectionsData, isLoading, error, fetchCollections } = useCollections();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [searching, setSearching] = useState(false);
     const location = useLocation();
 
     const SkeletonItem = () => (
@@ -806,7 +807,7 @@ function BottomNavBar() {
             <ProfileModal />
 
             {/* Bottom Navigation Bar */}
-            <div className="fixed bottom-1 left-4 right-4 z-40 flex justify-center">
+            <div className={`fixed bottom-1 left-4 right-4 z-40 flex justify-center ${searching ? "invisible" : ""}`}>
                 <div className="bg-gray-800/40 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border border-gray-700/10">
                     <div className="flex items-center justify-center space-x-2">
 
@@ -826,6 +827,7 @@ function BottomNavBar() {
                         {/* Search */}
                         <SiteSearch
                             onPhone
+                            onOpenChange={setSearching}
                             triggerClassName={(active) =>
                                 `flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 ${active
                                     ? 'bg-orange-300 text-black shadow-lg'

@@ -7,14 +7,17 @@ import { Search, X } from "lucide-react";
 import { getProductSuggestions } from "../../api/catalog";
 
 const MIN_LENGTH = 2;
+const PHONE_TOP_GAP = 16;
+const PHONE_BOX_HEIGHT = 64;
 
 /**
  * A frosted glass bar floating over the page, like Spotlight. It sits near the
  * top of the screen, where a phone's keyboard cannot cover it.
- * @param {{ onPhone?: boolean, triggerClassName?: (active: boolean) => string }} props
+ * @param {{ onPhone?: boolean, triggerClassName?: (active: boolean) => string, onOpenChange?: (open: boolean) => void }} props
  *   onPhone: the button is the bottom navigation's.
+ *   onOpenChange: tells the bottom navigation to step aside while searching.
  */
-function SiteSearch({ onPhone = false, triggerClassName }) {
+function SiteSearch({ onPhone = false, triggerClassName, onOpenChange }) {
   const listId = useId();
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,7 +56,34 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
       input.current?.focus();
       setShowList(true);
     }
+    onOpenChange?.(open);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // When a phone's keyboard opens, the browser shifts the visible part of the
+  // page, which leaves fixed elements behind. So the box follows what is really
+  // on screen, and the page stays still underneath it.
+  const [visible, setVisible] = useState(null);
+  useEffect(() => {
+    if (!open || !onPhone) return undefined;
+    const viewport = window.visualViewport;
+    const measure = () =>
+      setVisible(
+        viewport
+          ? { top: viewport.offsetTop, height: viewport.height }
+          : { top: 0, height: window.innerHeight },
+      );
+    measure();
+    viewport?.addEventListener("resize", measure);
+    viewport?.addEventListener("scroll", measure);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      viewport?.removeEventListener("resize", measure);
+      viewport?.removeEventListener("scroll", measure);
+      document.body.style.overflow = overflow;
+    };
+  }, [open, onPhone]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -145,6 +175,14 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
 
   const listVisible = showList && query.length >= MIN_LENGTH;
 
+  // On a phone, the box is placed within the part of the page actually showing.
+  const phoneStyle =
+    onPhone && visible ? { top: `${visible.top + PHONE_TOP_GAP}px`, bottom: "auto" } : undefined;
+  const listStyle =
+    onPhone && visible
+      ? { maxHeight: `${Math.max(120, visible.height - PHONE_TOP_GAP - PHONE_BOX_HEIGHT - 8)}px` }
+      : undefined;
+
   const rowClass = (highlighted) =>
     `w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left transition-colors ${
       highlighted ? "bg-white/20" : "hover:bg-white/10"
@@ -153,6 +191,7 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
   const panel = (
     <div
       ref={box}
+      style={phoneStyle}
       className={`fixed z-[60] inset-x-4 top-20 sm:top-[12vh] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[640px] overflow-hidden border border-gray-700/10 bg-gray-800/40 text-white shadow-2xl backdrop-blur-lg ${
         listVisible ? "rounded-[28px]" : "rounded-full"
       }`}
@@ -164,7 +203,11 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           type="search"
           value={text}
           maxLength={100}
+          name="site-search"
           autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          enterKeyHint="search"
           role="combobox"
           aria-label="Search products"
           aria-expanded={listVisible}
@@ -197,7 +240,8 @@ function SiteSearch({ onPhone = false, triggerClassName }) {
           id={listId}
           role="listbox"
           aria-label="Suggestions"
-          className="border-t border-white/15 p-2 max-h-[60vh] overflow-y-auto font-normal"
+          style={listStyle}
+          className="border-t border-white/15 p-2 max-h-[60vh] overflow-y-auto overscroll-contain font-normal"
         >
           {suggestions.map((item, index) => (
             <button
