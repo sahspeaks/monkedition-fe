@@ -159,6 +159,29 @@ export const request = async (path, { method = "GET", body, auth = true, headers
   return data;
 };
 
+/**
+ * fetch() to any URL with the signed-in user's token, refreshing the session
+ * on a 401 and retrying once, like request(). Returns the raw Response, for
+ * services other than the store API and for bodies that are not JSON
+ * (file uploads, images, ZIPs).
+ * @param {string} url
+ * @param {RequestInit} [init]
+ */
+export const authFetch = async (url, init = {}, retried = false) => {
+  if (!navigator.onLine) throw new ApiError("No internet connection");
+  const token = getAccessToken();
+  const response = await fetch(url, {
+    ...init,
+    headers: { ...init.headers, ...(token && { Authorization: `Bearer ${token}` }) },
+  });
+  if (response.status === 401 && token && !retried) {
+    if (await refreshSession()) return authFetch(url, init, true);
+    expireSession();
+    throw new ApiError("Your session has expired. Please log in again.", { status: 401, code: "SESSION_EXPIRED" });
+  }
+  return response;
+};
+
 export const api = {
   get: (path, options) => request(path, { ...options, method: "GET" }),
   post: (path, body, options) => request(path, { ...options, method: "POST", body }),

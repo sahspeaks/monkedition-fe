@@ -250,7 +250,9 @@ Create a `.env` file in the root directory:
 
 ```env
 VITE_OAUTH_CLIENT_ID=your_google_oauth_client_id
-VITE_API_BASE_URL=your_api_base_url
+VITE_API_BASE_URL=http://localhost:9000        # monkedition-be, no trailing slash
+VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
+VITE_MOCKUPS_API_URL=http://localhost:8000     # monkedition-mockups, for /dashboard/mockups
 ```
 
 ## 📊 State Management

@@ -17,6 +17,7 @@ import {
   RotateCcw,
   ScrollText,
   Settings as SettingsIcon,
+  Shirt,
   ShoppingBag,
   Truck,
   Tag,
@@ -42,6 +43,7 @@ import Settings from "./pages/Settings";
 import Emails from "./pages/Emails";
 import Alerts from "./pages/Alerts";
 import AuditLog from "./pages/AuditLog";
+import Mockups from "./pages/Mockups";
 
 const NAV = [
   { to: "/dashboard", label: "Overview", icon: Home, end: true },
@@ -52,6 +54,7 @@ const NAV = [
   { to: "/dashboard/inventory", label: "Inventory", icon: Boxes },
   { to: "/dashboard/categories", label: "Categories", icon: FolderTree },
   { to: "/dashboard/sliders", label: "Home sliders", icon: Images },
+  { to: "/dashboard/mockups", label: "Mockups", icon: Shirt },
   { to: "/dashboard/promotions", label: "Promo codes", icon: Tag },
   { to: "/dashboard/reviews", label: "Reviews", icon: MessageSquare },
   { to: "/dashboard/people", label: "Customers & staff", icon: Users },
@@ -147,6 +150,7 @@ const Dashboard = () => {
           <Route path="inventory" element={<Inventory />} />
           <Route path="categories" element={<Categories />} />
           <Route path="sliders" element={<Sliders />} />
+          <Route path="mockups" element={<Mockups />} />
           <Route path="promotions" element={<Promotions />} />
           <Route path="returns" element={<Returns />} />
           <Route path="reviews" element={<Reviews />} />
