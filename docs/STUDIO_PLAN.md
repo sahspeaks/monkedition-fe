@@ -294,7 +294,7 @@ Each spec uses the same parts:
 
 | Part | Spec |
 |---|---|
-| Panel | Design name (required), series (combobox: pick an existing series or type a new one), notes (optional) |
+| Panel | Design name (required), **series: a dropdown of the shop's categories from the backend** (`GET /api/v2/categories/tree`, grouped by top level, with thumbnails; no free text), slot checklist. No notes field (a draft-level note can come with shared drafts in phase 4) |
 | Stage | Three **slots**: FR (front), BK (back), LP (pocket). Each slot has a main file and an optional **[BK] dark-garment variant** sub-slot. The whole stage is a drop zone that glows on drag-over; dropped files sort themselves into slots by file name |
 | Inspector | Selected file on a checkerboard; size, pixel dimensions, detected code; checks with icons: **transparent background** (warn if none), **resolution** (warn under 2400 px on the long side), **file size** (error over 40 MB); Replace / Remove |
 | States | Empty: large drop zone, "Drop FR / BK / LP PNGs, or browse". Uploading: progress ring on each card. Unrecognised name: card asks "Which slot?" with three chips. Wrong type: card shakes, error text |

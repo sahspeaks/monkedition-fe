@@ -1,12 +1,12 @@
 // Step 1: the artwork. Three slots (FR front, BK back, LP pocket), each with an
-// optional [BK] dark-garment variant. Every file is checked for a transparent
+// optional dark tee version (files named with [BK]). Every file is checked for a transparent
 // background, resolution and size. Done when the design has a name and at
 // least one file (steps.js). Spec: docs/STUDIO_PLAN.md §5.3.
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, CircleDot, ImagePlus, Plus, RefreshCw, Trash2, Upload, X, XCircle } from "lucide-react";
-import { useStudio } from "../context";
 import { Button } from "../ui/Shell";
+import CategorySelect from "../ui/CategorySelect";
 
 const ease = [0.22, 1, 0.36, 1];
 const SLOTS = [
@@ -17,7 +17,6 @@ const SLOTS = [
 const MAX_MB = 40;
 const MIN_SIDE = 2400;
 const THUMB = 480; // px; previews are stored with the draft, so keep them small
-const SERIES = ["Attack on Titan", "Jujutsu Kaisen", "Floral", "Superheroes"];
 
 const slotFromName = (name) => name.match(/^\s*(FR|BK|LP)\b/i)?.[1].toUpperCase() ?? null;
 const variantFromName = (name) => (/\[BK\]/i.test(name) ? "dark" : "normal");
@@ -89,33 +88,53 @@ const LineInput = ({ label, hint, large = false, ...props }) => (
 );
 
 // ---------- file tiles ----------
-const FileTile = ({ file, selected, onSelect, small = false }) => (
-  <motion.button
-    layout
+/**
+ * A fixed-size box whose content crossfades in place when it changes (empty →
+ * file, file → another file, file → empty). Nothing slides and nothing around
+ * it resizes.
+ */
+const SlotBox = ({ contentKey, small = false, children }) => {
+  const reduce = useReducedMotion();
+  return (
+    <div className={`relative ${small ? "h-36" : "h-64"}`}>
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={contentKey}
+          className="absolute inset-0"
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, transition: { duration: 0.15 } }}
+          transition={{ duration: 0.3, ease }}
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const FileTile = ({ file, selected, onSelect }) => (
+  <button
     type="button"
     onClick={onSelect}
-    initial={{ opacity: 0, scale: 0.94 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.94 }}
-    transition={{ duration: 0.35, ease }}
     aria-pressed={selected}
-    className={`group block w-full overflow-hidden rounded-md border text-left transition-colors ${selected ? "border-[var(--accent)]" : "border-[var(--line)] hover:border-[var(--line-2)]"}`}
+    className={`group flex h-full w-full flex-col overflow-hidden rounded-md border text-left transition-colors ${selected ? "border-[var(--accent)]" : "border-[var(--line)] hover:border-[var(--line-2)]"}`}
   >
-    <span className={`checker flex items-center justify-center ${small ? "h-24" : "h-48"}`}>
+    <span className="checker flex min-h-0 flex-1 items-center justify-center">
       <img src={file.thumb} alt="" className="max-h-full max-w-full object-contain p-3" />
     </span>
-    <span className="flex items-center gap-2 border-t border-[var(--line)] bg-[var(--panel)] px-3 py-2">
+    <span className="flex shrink-0 items-center gap-2 border-t border-[var(--line)] bg-[var(--panel)] px-3 py-2">
       <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-[var(--text-2)]">{file.name}</span>
       <CheckIcon level={worst(file)} className="h-3.5 w-3.5 shrink-0" />
     </span>
-  </motion.button>
+  </button>
 );
 
-const EmptyTile = ({ label, onClick, small = false, optional = false }) => (
+const EmptyTile = ({ label, onClick, optional = false }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`flex w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-[var(--line-2)] text-[var(--text-3)] transition-colors hover:border-[var(--text-3)] hover:text-[var(--text)] ${small ? "h-[8.4rem]" : "h-[14.6rem]"}`}
+    className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-[var(--line-2)] text-[var(--text-3)] transition-colors hover:border-[var(--text-3)] hover:text-[var(--text)]"
   >
     <Plus className="h-4 w-4" />
     <span className="label">{label}</span>
@@ -171,7 +190,8 @@ const Inspector = ({ file, files, onMove, onReplace, onRemove }) => {
         </div>
         <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 text-sm text-[var(--text-2)]">
           <span>
-            Dark-garment variant <span className="font-mono text-[11px] text-[var(--text-3)]">[BK]</span>
+            Dark tee version
+            <span className="block text-[11px] text-[var(--text-3)]">Used on black and other dark colours</span>
           </span>
           <button
             type="button"
@@ -199,7 +219,6 @@ const Inspector = ({ file, files, onMove, onReplace, onRemove }) => {
 
 // ---------- the step ----------
 const DesignStep = ({ draft, update, step, index }) => {
-  const { drafts } = useStudio();
   const reduce = useReducedMotion();
   const design = draft.design;
   const files = design.files;
@@ -212,10 +231,6 @@ const DesignStep = ({ draft, update, step, index }) => {
   const target = useRef(null); // { slot, variant } when a slot's "+" opened the picker, or { replace: id }
   const selected = files.find((f) => f.id === selectedId) ?? null;
 
-  const knownSeries = useMemo(
-    () => [...new Set([...SERIES, ...drafts.map((d) => d.design?.series).filter(Boolean)])].filter((s) => s !== design.series),
-    [drafts, design.series],
-  );
 
   const setDesign = (patch) =>
     update((d) => {
@@ -304,30 +319,8 @@ const DesignStep = ({ draft, update, step, index }) => {
     <div className="space-y-8 p-6">
       <p className="label text-[var(--text-3)]">Details</p>
       <LineInput label="Design name" large placeholder="e.g. Eren Yeager" value={design.name} onChange={(e) => setDesign({ name: e.target.value })} />
-      <div>
-        <LineInput label="Series" placeholder="Pick below or type a new one" value={design.series} onChange={(e) => setDesign({ series: e.target.value })} />
-        {knownSeries.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {knownSeries.slice(0, 6).map((s) => (
-              <button key={s} type="button" onClick={() => setDesign({ series: s })} className="rounded-full border border-[var(--line-2)] px-2.5 py-1 text-xs text-[var(--text-2)] transition-colors hover:border-[var(--text-3)] hover:text-[var(--text)]">
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      <label className="block">
-        <span className="label mb-2 flex justify-between text-[var(--text-3)]">
-          Notes <span className="normal-case tracking-normal">optional</span>
-        </span>
-        <textarea
-          rows={3}
-          placeholder="Anything the team should know"
-          value={design.notes}
-          onChange={(e) => setDesign({ notes: e.target.value })}
-          className="inline-edit w-full resize-none border-0 border-b border-[var(--line-2)] bg-transparent px-0 pb-2 text-sm text-[var(--text)] caret-[var(--accent)] placeholder:text-[var(--mute)] focus:border-[var(--text)]"
-        />
-      </label>
+      {/* the shop's categories from the backend; no free text */}
+      <CategorySelect label="Series" value={design.categoryId} onChange={(c) => setDesign({ categoryId: c.id, series: c.name, categoryPath: c.path })} />
       <div>
         <p className="label mb-3 text-[var(--text-3)]">Slots</p>
         <ul className="border-t border-[var(--line)]">
@@ -358,7 +351,7 @@ const DesignStep = ({ draft, update, step, index }) => {
             Step {String(index + 1).padStart(2, "0")} — {step.label}
           </p>
           <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.035em] md:text-5xl">{step.title}</h1>
-          <p className="mt-3 max-w-lg text-[var(--text-2)]">FR, BK and LP are read from the file name. Name dark-garment versions like BK-[BK].png.</p>
+          <p className="mt-3 max-w-lg text-[var(--text-2)]">Files are sorted by name: FR front, BK back, LP pocket. Add [BK] to a file name for its dark tee version, e.g. FR-[BK].png.</p>
         </div>
         <Button onClick={() => browse()}>
           <ImagePlus className="h-4 w-4" /> Browse files
@@ -423,24 +416,27 @@ const DesignStep = ({ draft, update, step, index }) => {
                       <span className="font-medium">{slot.label}</span>
                     </span>
                   </header>
-                  <p className="mb-3 text-xs text-[var(--text-3)]">{slot.hint}</p>
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {normal ? (
-                      <FileTile key={normal.id} file={normal} selected={normal.id === selectedId} onSelect={() => setSelectedId(normal.id)} />
-                    ) : (
-                      <EmptyTile key="empty" label={`Add ${slot.key}`} onClick={() => browse({ slot: slot.key, variant: "normal" })} />
-                    )}
-                  </AnimatePresence>
-                  <p className="label mb-2 mt-4 flex justify-between text-[var(--text-3)]">
-                    [BK] variant <span className="normal-case tracking-normal">dark tees</span>
+                  <p className="mb-4 text-xs text-[var(--text-3)]">{slot.hint}</p>
+                  <p className="label mb-2 flex justify-between text-[var(--text-3)]">
+                    Main version <span className="normal-case tracking-normal">light colours</span>
                   </p>
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {dark ? (
-                      <FileTile key={dark.id} small file={dark} selected={dark.id === selectedId} onSelect={() => setSelectedId(dark.id)} />
+                  <SlotBox contentKey={normal ? `${normal.id}:${normal.name}:${normal.sizeMB}` : "empty"}>
+                    {normal ? (
+                      <FileTile file={normal} selected={normal.id === selectedId} onSelect={() => setSelectedId(normal.id)} />
                     ) : (
-                      <EmptyTile key="empty-dark" small optional label={`Add ${slot.key} [BK]`} onClick={() => browse({ slot: slot.key, variant: "dark" })} />
+                      <EmptyTile label={`Add ${slot.key}`} onClick={() => browse({ slot: slot.key, variant: "normal" })} />
                     )}
-                  </AnimatePresence>
+                  </SlotBox>
+                  <p className="label mb-2 mt-4 flex justify-between text-[var(--text-3)]">
+                    Dark tee version <span className="normal-case tracking-normal">black &amp; dark colours</span>
+                  </p>
+                  <SlotBox small contentKey={dark ? `${dark.id}:${dark.name}:${dark.sizeMB}` : "empty"}>
+                    {dark ? (
+                      <FileTile file={dark} selected={dark.id === selectedId} onSelect={() => setSelectedId(dark.id)} />
+                    ) : (
+                      <EmptyTile optional label="Add dark version" onClick={() => browse({ slot: slot.key, variant: "dark" })} />
+                    )}
+                  </SlotBox>
                 </section>
               );
             })}

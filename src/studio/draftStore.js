@@ -7,7 +7,7 @@ const KEY = "monk-studio-drafts";
 /** Steps with a real screen use their own rule (steps.js); the rest use "Mark as done". */
 export const BUILT_STEPS = new Set(["design"]);
 
-const emptyDesign = () => ({ name: "", series: "", notes: "", files: [] });
+const emptyDesign = () => ({ name: "", categoryId: null, series: "", categoryPath: "", files: [] });
 
 const normalise = (d) => ({ ...d, doneSteps: Array.isArray(d.doneSteps) ? d.doneSteps : [], design: { ...emptyDesign(), ...d.design } });
 
