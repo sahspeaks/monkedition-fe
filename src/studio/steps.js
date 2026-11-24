@@ -21,7 +21,8 @@ export const STEPS = [
     icon: Upload,
     title: "Drop in the artwork",
     subtitle: "Upload the print files. FR, BK and LP are sorted by file name.",
-    missing: (d) => (!d.design.name.trim() ? "Name the design" : !d.design.files.length ? "Add at least one print file" : null),
+    missing: (d) =>
+      !d.design.name.trim() ? "Name the design" : !d.design.categoryId ? "Choose a series" : !d.design.files.length ? "Add at least one print file" : null,
   },
   {
     key: "models",

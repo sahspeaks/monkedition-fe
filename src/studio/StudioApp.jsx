@@ -1,13 +1,16 @@
 // Monk Studio: a full-screen app at /studio for staff, from design file to
 // published product. This round: the drafts list and the stepper, with
-// placeholder steps; drafts live in localStorage. See docs/STUDIO_PLAN.md.
-import { useEffect, useState } from "react";
+// placeholder steps; drafts live in localStorage, the model library in the
+// backend (built-in sets ship in public/). See docs/STUDIO_PLAN.md.
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "../context/NewAuthContext";
 import { StudioContext } from "./context";
 import Wizard from "./Wizard";
 import Drafts from "./Drafts";
 import { loadDrafts, saveDrafts } from "./draftStore";
+import { BUILTIN_SETS, deleteModelSet, fetchModelSets } from "./modelStore";
+import { errorText } from "../dashboard/api";
 import { useTheme } from "./useTheme";
 import { Wordmark } from "./ui/Shell";
 import "./theme.css";
@@ -39,6 +42,28 @@ const StudioApp = () => {
   const [drafts, setDrafts] = useState(loadDrafts);
   const { theme, toggle: toggleTheme } = useTheme();
 
+  const { user } = useAuth();
+  const isStaff = Boolean(user?.roles?.some((r) => STAFF_ROLES.includes(r)));
+  // the model library: built-in sets + the ones saved in the database
+  const [library, setLibrary] = useState({ status: "loading", sets: [], error: "" });
+  const reloadLibrary = useCallback(async () => {
+    setLibrary((l) => ({ ...l, status: "loading", error: "" }));
+    try {
+      setLibrary({ status: "ready", sets: await fetchModelSets(), error: "" });
+    } catch (err) {
+      setLibrary((l) => ({ ...l, status: "error", error: errorText(err) }));
+    }
+  }, []);
+  useEffect(() => {
+    if (isStaff) reloadLibrary();
+  }, [isStaff, reloadLibrary]);
+  const modelSets = useMemo(() => [...BUILTIN_SETS, ...library.sets], [library.sets]);
+  const addModelSet = useCallback((set) => setLibrary((l) => ({ ...l, sets: [set, ...l.sets.filter((s) => s.id !== set.id)] })), []);
+  const removeModelSet = useCallback(async (id) => {
+    await deleteModelSet(id);
+    setLibrary((l) => ({ ...l, sets: l.sets.filter((s) => s.id !== id) }));
+  }, []);
+
   useEffect(() => {
     saveDrafts(drafts);
   }, [drafts]);
@@ -52,7 +77,7 @@ const StudioApp = () => {
   }, []);
 
   return (
-    <StudioContext.Provider value={{ drafts, setDrafts, theme, toggleTheme }}>
+    <StudioContext.Provider value={{ drafts, setDrafts, modelSets, libraryStatus: library.status, libraryError: library.error, reloadLibrary, addModelSet, removeModelSet, theme, toggleTheme }}>
       <div id="studio-root" className="studio" data-theme={theme}>
         <Gate>
           <Routes>

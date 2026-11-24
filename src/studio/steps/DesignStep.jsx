@@ -22,10 +22,23 @@ const slotFromName = (name) => name.match(/^\s*(FR|BK|LP)\b/i)?.[1].toUpperCase(
 const variantFromName = (name) => (/\[BK\]/i.test(name) ? "dark" : "normal");
 const fmtMB = (mb) => (mb < 1 ? `${Math.round(mb * 1024)} KB` : `${mb.toFixed(1)} MB`);
 
-/** Reads size, whether any pixel is transparent, and a small preview. */
-const inspect = (file) =>
+/** Reads the file into memory, reporting progress (0–0.8 while reading). */
+const readWithProgress = (file, onProgress) =>
   new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
+    const reader = new FileReader();
+    reader.onprogress = (e) => e.lengthComputable && onProgress((e.loaded / e.total) * 0.8);
+    reader.onload = () => resolve(new Blob([reader.result], { type: file.type }));
+    reader.onerror = () => resolve(null);
+    reader.readAsArrayBuffer(file);
+  });
+
+/** Reads size, whether any pixel is transparent, and a small preview. */
+const inspect = async (file, onProgress = () => {}) => {
+  const blob = await readWithProgress(file, onProgress);
+  if (!blob) return null;
+  onProgress(0.9); // decoding and checking
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
       const scale = Math.min(1, THUMB / Math.max(img.width, img.height));
@@ -53,6 +66,19 @@ const inspect = (file) =>
     };
     img.src = url;
   });
+};
+
+/** A small solid progress ring. */
+const Ring = ({ value, size = 18 }) => {
+  const r = (size - 3) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} className="-rotate-90 shrink-0" aria-hidden="true">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--line-2)" strokeWidth="2" />
+      <motion.circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--accent)" strokeWidth="2" strokeDasharray={c} initial={false} animate={{ strokeDashoffset: c * (1 - value) }} transition={{ duration: 0.2 }} />
+    </svg>
+  );
+};
 
 const checksFor = (f) => [
   { level: f.transparent ? "ok" : "warn", text: f.transparent ? "Transparent background" : "No transparent background: the print will show a box" },
@@ -224,7 +250,7 @@ const DesignStep = ({ draft, update, step, index }) => {
   const files = design.files;
   const [selectedId, setSelectedId] = useState(files[0]?.id ?? null);
   const [dragging, setDragging] = useState(false);
-  const [busy, setBusy] = useState(0);
+  const [checking, setChecking] = useState([]); // [{ key, name, pct }] files being read and checked
   const [unsorted, setUnsorted] = useState([]); // files whose name says no slot
   const [errors, setErrors] = useState([]);
   const picker = useRef(null);
@@ -251,17 +277,24 @@ const DesignStep = ({ draft, update, step, index }) => {
     if (!chosen.length) return;
     const aim = target.current;
     target.current = null;
-    setBusy((n) => n + chosen.length);
+    const keys = chosen.map((f) => ({ key: Math.random().toString(36).slice(2, 10), name: f.name, pct: 0 }));
+    setChecking((c) => [...c, ...keys]);
+    const progress = (key) => (pct) => setChecking((c) => c.map((x) => (x.key === key ? { ...x, pct } : x)));
+    const finish = (key) => setChecking((c) => c.filter((x) => x.key !== key));
     const placed = [];
     const loose = [];
     const problems = [];
-    for (const file of chosen) {
+    for (const [n, file] of chosen.entries()) {
+      const { key } = keys[n];
       const sizeMB = file.size / 2 ** 20;
       if (sizeMB > MAX_MB) {
+        finish(key);
         problems.push(`${file.name}: ${fmtMB(sizeMB)} is over the ${MAX_MB} MB limit`);
         continue;
       }
-      const info = await inspect(file);
+      const info = await inspect(file, progress(key));
+      progress(key)(1);
+      setTimeout(() => finish(key), 350); // let the ring complete before it goes
       if (!info) {
         problems.push(`${file.name}: not an image Studio can read (use PNG)`);
         continue;
@@ -276,7 +309,6 @@ const DesignStep = ({ draft, update, step, index }) => {
       if (slot) placed.push({ ...entry, slot, variant });
       else loose.push({ ...entry, variant });
     }
-    setBusy((n) => n - chosen.length);
     if (placed.length) {
       place(placed);
       setSelectedId(placed[0].id);
@@ -322,17 +354,32 @@ const DesignStep = ({ draft, update, step, index }) => {
       {/* the shop's categories from the backend; no free text */}
       <CategorySelect label="Series" value={design.categoryId} onChange={(c) => setDesign({ categoryId: c.id, series: c.name, categoryPath: c.path })} />
       <div>
-        <p className="label mb-3 text-[var(--text-3)]">Slots</p>
+        <p className="label mb-3 flex justify-between text-[var(--text-3)]">
+          Slots <span className="normal-case tracking-normal">click to select or add</span>
+        </p>
         <ul className="border-t border-[var(--line)]">
           {SLOTS.map((s) => {
             const normal = files.find((f) => f.slot === s.key && f.variant === "normal");
             const dark = files.find((f) => f.slot === s.key && f.variant === "dark");
+            const first = normal ?? dark;
+            const current = selected?.slot === s.key;
             return (
-              <li key={s.key} className="flex items-center gap-3 border-b border-[var(--line)] py-3 text-sm">
-                <span className="w-7 font-mono text-xs text-[var(--text)]">{s.key}</span>
-                <span className="flex-1 text-[var(--text-2)]">{s.label}</span>
-                <span className="font-mono text-[11px] text-[var(--text-3)]">{normal || dark ? `${[normal, dark].filter(Boolean).length} file${normal && dark ? "s" : ""}` : "—"}</span>
-                <span className={`h-1.5 w-1.5 rounded-full ${normal || dark ? "bg-[var(--success)]" : "bg-[var(--line-2)]"}`} aria-hidden="true" />
+              <li key={s.key} className="border-b border-[var(--line)]">
+                <button
+                  type="button"
+                  onClick={() => (first ? setSelectedId(first.id) : browse({ slot: s.key, variant: "normal" }))}
+                  aria-label={first ? `Select the ${s.label.toLowerCase()} file` : `Add a ${s.label.toLowerCase()} file`}
+                  className={`group flex w-full items-center gap-3 px-2 py-3 text-left text-sm transition-colors hover:bg-[var(--panel)] ${current ? "bg-[var(--panel)]" : ""}`}
+                >
+                  <span className={`w-7 font-mono text-xs ${current ? "text-[var(--accent)]" : "text-[var(--text)]"}`}>{s.key}</span>
+                  <span className="flex-1 text-[var(--text-2)] group-hover:text-[var(--text)]">{s.label}</span>
+                  {first ? (
+                    <span className="font-mono text-[11px] text-[var(--text-3)]">{normal && dark ? "2 files" : "1 file"}</span>
+                  ) : (
+                    <Plus className="h-3.5 w-3.5 text-[var(--text-3)] group-hover:text-[var(--text)]" aria-hidden="true" />
+                  )}
+                  <span className={`h-1.5 w-1.5 rounded-full ${first ? "bg-[var(--success)]" : "bg-[var(--line-2)]"}`} aria-hidden="true" />
+                </button>
               </li>
             );
           })}
@@ -353,7 +400,10 @@ const DesignStep = ({ draft, update, step, index }) => {
           <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.035em] md:text-5xl">{step.title}</h1>
           <p className="mt-3 max-w-lg text-[var(--text-2)]">Files are sorted by name: FR front, BK back, LP pocket. Add [BK] to a file name for its dark tee version, e.g. FR-[BK].png.</p>
         </div>
-        <Button onClick={() => browse()}>
+        <Button onClick={() => browse()} className="hidden lg:inline-flex">
+          <ImagePlus className="h-4 w-4" /> Browse files
+        </Button>
+        <Button variant="solid" onClick={() => browse()} className="lg:hidden">
           <ImagePlus className="h-4 w-4" /> Browse files
         </Button>
       </div>
@@ -362,7 +412,15 @@ const DesignStep = ({ draft, update, step, index }) => {
       {/* errors and files that need a slot */}
       <AnimatePresence initial={false}>
         {errors.map((msg, i) => (
-          <motion.div key={msg + i} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, marginBottom: 0 }} className="mb-3 flex items-center gap-3 border border-[var(--error)] px-4 py-3 text-sm" role="alert">
+          <motion.div
+            key={msg + i}
+            initial={{ opacity: 0, x: 0 }}
+            animate={reduce ? { opacity: 1 } : { opacity: 1, x: [0, -10, 10, -7, 7, -3, 3, 0] }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="mb-3 flex items-center gap-3 border border-[var(--error)] px-4 py-3 text-sm"
+            role="alert"
+          >
             <XCircle className="h-4 w-4 shrink-0 text-[var(--error)]" />
             <span className="flex-1 text-[var(--text)]">{msg}</span>
             <button type="button" onClick={() => setErrors((e) => e.filter((_, j) => j !== i))} className="text-[var(--text-3)] hover:text-[var(--text)]" aria-label="Dismiss">
@@ -404,12 +462,12 @@ const DesignStep = ({ draft, update, step, index }) => {
         </motion.button>
       ) : (
         <div className="relative">
-          <div className="grid gap-px overflow-hidden rounded-md border border-[var(--line)] bg-[var(--line)] md:grid-cols-3">
+          <div className="grid gap-px overflow-hidden rounded-md border border-[var(--line)] bg-[var(--line)] md:grid-cols-2 xl:grid-cols-3">
             {SLOTS.map((slot) => {
               const normal = files.find((f) => f.slot === slot.key && f.variant === "normal");
               const dark = files.find((f) => f.slot === slot.key && f.variant === "dark");
               return (
-                <section key={slot.key} className="bg-[var(--ink)] p-4">
+                <section key={slot.key} className={`bg-[var(--ink)] p-4 ${slot.key === "LP" ? "md:col-span-2 xl:col-span-1" : ""}`}>
                   <header className="mb-4 flex items-baseline justify-between gap-2">
                     <span className="flex items-baseline gap-2">
                       <span className="font-mono text-sm text-[var(--accent)]">{slot.key}</span>
@@ -451,11 +509,19 @@ const DesignStep = ({ draft, update, step, index }) => {
           </AnimatePresence>
         </div>
       )}
-      {busy > 0 && (
-        <p className="label mt-4 flex items-center gap-2 text-[var(--text-3)]" aria-live="polite">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent)]" /> Checking {busy} file{busy > 1 ? "s" : ""}…
-        </p>
-      )}
+      <AnimatePresence initial={false}>
+        {checking.length > 0 && (
+          <motion.ul initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-4 space-y-2" aria-live="polite" aria-label="Checking files">
+            {checking.map((c) => (
+              <li key={c.key} className="flex items-center gap-3 text-sm">
+                <Ring value={c.pct} />
+                <span className="min-w-0 flex-1 truncate font-mono text-xs text-[var(--text-2)]">{c.name}</span>
+                <span className="font-mono text-[11px] text-[var(--text-3)]">{Math.round(c.pct * 100)}%</span>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
     </div>
   );
 

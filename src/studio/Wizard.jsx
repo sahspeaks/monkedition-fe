@@ -10,9 +10,10 @@ import { useStudio } from "./context";
 import { ActionBar, Button, Stepper, TopBar } from "./ui/Shell";
 import { BUILT_STEPS, stepDone } from "./draftStore";
 import DesignStep from "./steps/DesignStep";
+import ModelsStep from "./steps/ModelsStep";
 
 /** Steps with a real screen; the others show a placeholder for now. */
-const SCREENS = { design: DesignStep };
+const SCREENS = { design: DesignStep, models: ModelsStep };
 
 const ease = [0.22, 1, 0.36, 1];
 

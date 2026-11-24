@@ -1,245 +1,137 @@
-// Step 2: model sets from the library, and the "photoshoot" to make a new one.
+// Step 2: pick model sets from the library and the angles this product uses.
+// An angle can be used only if it takes one of the design's slots (FR/LP on
+// front angles, BK on back angles). Done when at least one chosen angle can
+// show a print (steps.js). Spec: docs/STUDIO_PLAN.md §5.4.
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
-import { Check, Plus, RefreshCw, Search, Sparkles, Upload, X } from "lucide-react";
-import Workspace from "../ui/Workspace";
-import ModelFigure from "../ui/ModelFigure";
-import { AuroraButton, Chip, GhostButton, Label, TextArea, TextInput, TiltCard, spring } from "../ui/primitives";
-import { ANGLES, MIN_ANGLES, angleLabel } from "../data/sample";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Check, CircleDot, Plus, RotateCw, Search, Trash2, Upload } from "lucide-react";
+import { ANGLES, angleLabel } from "../data/sample";
 import { useStudio } from "../context";
-import { Develop, Segmented, StageHeader, Stagger, StaggerItem } from "./common";
+import ModelFigure from "../ui/ModelFigure";
+import Segmented from "../ui/Segmented";
+import { Button } from "../ui/Shell";
+import { Photoshoot, UploadSet } from "./ModelSetCreator";
+import { errorText } from "../../dashboard/api";
 
+const ease = [0.22, 1, 0.36, 1];
 const GREEN = "#00b140";
+const takesOf = (angle) => ANGLES.find((a) => a.key === angle)?.takes ?? [];
 
-/** Cover that cycles through the set's angles while hovered. */
-const ModelCover = ({ set }) => {
-  const [hover, setHover] = useState(false);
+/** One angle of a set: its photo if uploaded, else the illustration. */
+const AngleImage = ({ set, angle, className = "" }) =>
+  set.photos?.[angle] ? (
+    <img src={set.photos[angle]} alt="" className={`object-cover ${className}`} />
+  ) : (
+    <ModelFigure angle={angle} tee={GREEN} skin={set.skin} hair={set.hair} className={className} />
+  );
+
+/** Cover that steps through the set's angles while hovered or focused. */
+const Cover = ({ set, active }) => {
+  const reduce = useReducedMotion();
   const [i, setI] = useState(0);
   useEffect(() => {
-    if (!hover) return setI(0);
-    const t = setInterval(() => setI((n) => (n + 1) % set.angles.length), 650);
+    if (!active || reduce) {
+      setI(0);
+      return undefined;
+    }
+    const t = setInterval(() => setI((n) => (n + 1) % set.angles.length), 700);
     return () => clearInterval(t);
-  }, [hover, set.angles.length]);
+  }, [active, reduce, set.angles.length]);
+  const angle = set.angles[i] ?? "front";
   return (
-    <div className="relative aspect-[4/5]" onPointerEnter={() => setHover(true)} onPointerLeave={() => setHover(false)}>
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.div key={set.angles[i]} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-          <ModelFigure angle={set.angles[i]} tee={GREEN} skin={set.skin} hair={set.hair} className="h-full w-full" />
+    <div className="relative aspect-[4/5] overflow-hidden">
+      <AnimatePresence initial={false}>
+        <motion.div key={angle} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+          <AngleImage set={set} angle={angle} className="h-full w-full" />
         </motion.div>
       </AnimatePresence>
-      <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 font-mono text-[10px] text-white/80 backdrop-blur">{angleLabel(set.angles[i])}</span>
+      <span className="label absolute bottom-2 left-2 bg-[var(--ink)] px-2 py-1 !text-[10px] text-[var(--text)]">{angleLabel(angle)}</span>
     </div>
   );
 };
 
-// ---------- photoshoot overlay ----------
-const SKINS = [
-  ["#b07a55", "#1b1410"],
-  ["#8d5a3b", "#120d0a"],
-  ["#c48b62", "#2a1d14"],
-  ["#9c6646", "#0f0b09"],
-];
-
-const Photoshoot = ({ onClose, onSave }) => {
-  const [part, setPart] = useState(0); // 0 brief, 1 front, 2 angles, 3 save
-  const [brief, setBrief] = useState({ gender: "Men", text: "", model: "pro", angles: ANGLES.map((a) => a.key) });
-  const [candidates, setCandidates] = useState(null);
-  const [front, setFront] = useState(null);
-  const [made, setMade] = useState({}); // angle -> "making" | "done"
-  const [name, setName] = useState("");
-  const parts = ["Brief", "Front", "Angles", "Save"];
-  const cost = brief.model === "pro" ? 0.13 : 0.04; // per image, illustrative
-
-  const makeCandidates = () => {
-    setPart(1);
-    setCandidates(null);
-    setTimeout(() => setCandidates(SKINS.map(([skin, hair], i) => ({ id: i, skin, hair }))), 1400);
-  };
-  const makeAngles = () => {
-    setPart(2);
-    const rest = brief.angles.filter((a) => a !== "front");
-    setMade(Object.fromEntries(rest.map((a) => [a, "making"])));
-    rest.forEach((a, i) => setTimeout(() => setMade((m) => ({ ...m, [a]: "done" })), 900 + i * 650));
-  };
-  const regenerate = (angle) => {
-    setMade((m) => ({ ...m, [angle]: "making" }));
-    setTimeout(() => setMade((m) => ({ ...m, [angle]: "done" })), 1100);
-  };
-  const allDone = Object.values(made).every((s) => s === "done");
-
+const ModelCard = ({ set, order, focused, onToggle, onFocus }) => {
+  const [hover, setHover] = useState(false);
+  const selected = order >= 0;
   return (
-    <motion.div className="absolute inset-0 z-50 flex flex-col bg-[#0a0a0c]/90 backdrop-blur-xl" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
-        <div className="flex items-center gap-3">
-          <Sparkles className="h-5 w-5 text-[#ff5c8a]" />
-          <h2 className="font-display text-xl font-semibold text-white">New model set</h2>
+    <div
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+      className={`relative border transition-colors ${selected ? "border-[var(--accent)]" : focused ? "border-[var(--text-3)]" : "border-[var(--line)] hover:border-[var(--line-2)]"}`}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        onFocus={() => (setHover(true), onFocus())}
+        onBlur={() => setHover(false)}
+        aria-pressed={selected}
+        aria-label={`${selected ? "Remove" : "Use"} ${set.name}`}
+        className="block w-full text-left"
+      >
+        <Cover set={set} active={hover} />
+        <div className="border-t border-[var(--line)] p-3">
+          <p className="truncate font-medium">{set.name}</p>
+          <p className="mt-1 flex flex-wrap gap-x-2 text-[11px] text-[var(--text-3)]">
+            <span>{set.gender}</span>·<span>{set.source === "Generated" ? "AI" : "Photos"}</span>·<span>{set.angles.length} angles</span>
+            {set.builtin && (
+              <>
+                ·<span className="text-[var(--text-2)]">Built-in</span>
+              </>
+            )}
+          </p>
         </div>
-        <div className="hidden items-center gap-2 sm:flex">
-          {parts.map((p, i) => (
-            <span key={p} className={`rounded-full px-3 py-1 text-xs ${i === part ? "bg-white/10 text-white" : i < part ? "text-[var(--text-2)]" : "text-white/30"}`}>
-              {i + 1}. {p}
-            </span>
-          ))}
-        </div>
-        <button type="button" onClick={onClose} className="rounded-lg p-2 text-[var(--text-2)] hover:bg-white/5" aria-label="Close">
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-
-      <div className="scroll-y flex-1 p-6">
-        <AnimatePresence mode="wait">
-          {part === 0 && (
-            <motion.div key="brief" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
-              <div className="glass space-y-5 rounded-2xl p-6">
-                <div>
-                  <Label>Model</Label>
-                  <Segmented options={[["Men", "Men"], ["Women", "Women"]]} value={brief.gender} onChange={(gender) => setBrief((b) => ({ ...b, gender }))} />
-                </div>
-                <TextArea label="Custom direction" hint="optional" placeholder="e.g. curly hair, warmer lighting, urban backdrop" value={brief.text} onChange={(e) => setBrief((b) => ({ ...b, text: e.target.value }))} />
-                <div>
-                  <Label>Gemini model</Label>
-                  <Segmented options={[["pro", "Pro · best match"], ["flash", "Flash · cheaper"]]} value={brief.model} onChange={(model) => setBrief((b) => ({ ...b, model }))} />
-                </div>
-              </div>
-              <div className="glass rounded-2xl p-6">
-                <Label hint={`at least ${MIN_ANGLES}`}>Angles</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {ANGLES.map((a) => {
-                    const on = brief.angles.includes(a.key);
-                    return (
-                      <button
-                        key={a.key}
-                        type="button"
-                        disabled={a.key === "front"}
-                        onClick={() => setBrief((b) => ({ ...b, angles: on ? b.angles.filter((x) => x !== a.key) : [...b.angles, a.key] }))}
-                        className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm ${on ? "border-[#7c5cff]/50 bg-[#7c5cff]/10 text-white" : "border-white/10 text-[var(--text-2)] hover:border-white/25"}`}
-                      >
-                        <span className={`grid h-4 w-4 place-items-center rounded ${on ? "bg-aurora" : "border border-white/25"}`}>{on && <Check className="h-3 w-3" />}</span>
-                        {a.label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-6 flex items-end justify-between gap-4 border-t border-white/[0.06] pt-5">
-                  <div>
-                    <p className="text-xs text-[var(--text-3)]">Estimated cost</p>
-                    <p className="font-mono text-lg text-white">
-                      ≈ ${((4 + brief.angles.length - 1) * cost).toFixed(2)}
-                      <span className="ml-2 text-xs text-[var(--text-3)]">4 fronts + {brief.angles.length - 1} angles</span>
-                    </p>
-                  </div>
-                  <AuroraButton disabled={brief.angles.length < MIN_ANGLES} onClick={makeCandidates}>
-                    <Sparkles className="h-4 w-4" /> Generate fronts
-                  </AuroraButton>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {part === 1 && (
-            <motion.div key="front" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="mx-auto max-w-5xl">
-              <p className="mb-4 text-center text-sm text-[var(--text-2)]">Pick the front shot. Every other angle is generated from it, so it is the same person.</p>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {(candidates ?? SKINS).map((c, i) =>
-                  candidates ? (
-                    <Develop key={i} delay={i * 0.15}>
-                      <button type="button" onClick={() => setFront(c)} className={`relative w-full overflow-hidden rounded-2xl border ${front?.id === c.id ? "ring-aurora border-transparent" : "border-white/10 hover:border-white/30"}`}>
-                        <ModelFigure angle="front" tee={GREEN} skin={c.skin} hair={c.hair} className="aspect-[4/5] w-full" />
-                        {front?.id === c.id && <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-aurora"><Check className="h-4 w-4" /></span>}
-                      </button>
-                    </Develop>
-                  ) : (
-                    <div key={i} className="shimmer aspect-[4/5] rounded-2xl border border-white/[0.06]" />
-                  ),
-                )}
-              </div>
-              <div className="mt-6 flex justify-center gap-3">
-                <GhostButton onClick={makeCandidates} disabled={!candidates}>
-                  <RefreshCw className="h-4 w-4" /> Try again
-                </GhostButton>
-                <AuroraButton disabled={!front} onClick={makeAngles}>
-                  Use this front → make angles
-                </AuroraButton>
-              </div>
-            </motion.div>
-          )}
-
-          {part === 2 && (
-            <motion.div key="angles" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="mx-auto max-w-6xl">
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                {brief.angles.map((angle) => (
-                  <div key={angle} className="glass overflow-hidden rounded-2xl">
-                    {angle === "front" || made[angle] === "done" ? (
-                      <Develop>
-                        <ModelFigure angle={angle} tee={GREEN} skin={front.skin} hair={front.hair} className="aspect-[4/5] w-full" />
-                      </Develop>
-                    ) : (
-                      <div className="shimmer aspect-[4/5]" />
-                    )}
-                    <div className="flex items-center justify-between px-3 py-2">
-                      <span className="text-xs text-[var(--text-2)]">{angleLabel(angle)}</span>
-                      {angle !== "front" && (
-                        <button type="button" onClick={() => regenerate(angle)} disabled={made[angle] !== "done"} className="rounded p-1 text-[var(--text-3)] hover:text-white disabled:opacity-30" aria-label={`Regenerate ${angleLabel(angle)}`}>
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 flex justify-center">
-                <AuroraButton disabled={!allDone} onClick={() => setPart(3)}>
-                  {allDone ? "Accept angles" : `Making angles… ${Object.values(made).filter((s) => s === "done").length} / ${Object.keys(made).length}`}
-                </AuroraButton>
-              </div>
-            </motion.div>
-          )}
-
-          {part === 3 && (
-            <motion.div key="save" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} className="mx-auto max-w-md">
-              <div className="glass space-y-5 rounded-2xl p-6">
-                <div className="mx-auto w-40 overflow-hidden rounded-2xl">
-                  <ModelFigure angle="front" tee={GREEN} skin={front.skin} hair={front.hair} className="aspect-[4/5] w-full" />
-                </div>
-                <TextInput label="Name" placeholder="e.g. Dev · studio grey" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-                <AuroraButton
-                  className="w-full"
-                  disabled={!name.trim()}
-                  onClick={() => onSave({ id: `ms${Date.now()}`, name: name.trim(), gender: brief.gender, source: "Generated", skin: front.skin, hair: front.hair, angles: brief.angles, boxes: [] })}
-                >
-                  Save to library
-                </AuroraButton>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+      </button>
+      <AnimatePresence>
+        {selected && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            transition={{ duration: 0.25, ease }}
+            className="pointer-events-none absolute right-2 top-2 grid h-7 w-7 place-items-center bg-[var(--accent)] font-mono text-xs font-semibold text-[var(--accent-ink)]"
+          >
+            {order + 1}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
-// ---------- the step ----------
 const ModelsStep = ({ draft, update, step, index }) => {
-  const { modelSets, setModelSets } = useStudio();
+  const { modelSets, libraryStatus, libraryError, reloadLibrary, addModelSet, removeModelSet } = useStudio();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [gender, setGender] = useState("All");
   const [source, setSource] = useState("All");
   const [query, setQuery] = useState("");
   const [focusId, setFocusId] = useState(draft.modelSetIds[0] ?? null);
-  const [shoot, setShoot] = useState(false);
-  const [portal, setPortal] = useState(null); // the Studio root, so the photoshoot covers the whole screen
-  useEffect(() => setPortal(document.getElementById("studio-root") ?? document.body), []);
-  const slots = new Set(draft.design.files.map((f) => f.slot));
+  const [creating, setCreating] = useState(null); // "generate" | "upload"
+  const slots = useMemo(() => new Set(draft.design.files.map((f) => f.slot)), [draft.design.files]);
+  const usable = (angle) => takesOf(angle).some((s) => slots.has(s));
 
-  const shown = useMemo(
-    () =>
-      modelSets.filter(
-        (m) => (gender === "All" || m.gender === gender) && (source === "All" || m.source === source) && m.name.toLowerCase().includes(query.toLowerCase()),
-      ),
-    [modelSets, gender, source, query],
+  const shown = modelSets.filter(
+    (m) => (gender === "All" || m.gender === gender) && (source === "All" || m.source === source) && m.name.toLowerCase().includes(query.trim().toLowerCase()),
   );
-  const focus = modelSets.find((m) => m.id === focusId);
-  const usable = (angle) => ANGLES.find((a) => a.key === angle).takes.some((s) => slots.has(s));
+  const focus = modelSets.find((m) => m.id === focusId) ?? null;
+
+  // once the library has loaded, forget sets this draft picked that no longer exist
+  useEffect(() => {
+    if (libraryStatus !== "ready") return;
+    const known = new Set(modelSets.map((m) => m.id));
+    const stale = draft.modelSetIds.filter((id) => !known.has(id));
+    if (!stale.length) return;
+    update((d) => {
+      const anglesBySet = { ...d.anglesBySet };
+      stale.forEach((id) => delete anglesBySet[id]);
+      return { ...d, modelSetIds: d.modelSetIds.filter((id) => known.has(id)), anglesBySet };
+    });
+  }, [libraryStatus, modelSets, draft.modelSetIds, update]);
+  useEffect(() => {
+    setConfirmDelete(false);
+    setDeleteError("");
+  }, [focusId]);
+  const chosenAngles = draft.modelSetIds.reduce((n, id) => n + (draft.anglesBySet[id] ?? []).filter(usable).length, 0);
 
   const toggleSet = (set) => {
     setFocusId(set.id);
@@ -248,124 +140,245 @@ const ModelsStep = ({ draft, update, step, index }) => {
       return {
         ...d,
         modelSetIds: on ? d.modelSetIds.filter((x) => x !== set.id) : [...d.modelSetIds, set.id],
+        // a newly picked set starts with every angle that can show a print
         anglesBySet: on ? d.anglesBySet : { ...d.anglesBySet, [set.id]: d.anglesBySet[set.id] ?? set.angles.filter(usable) },
       };
     });
   };
-  const toggleAngle = (setId, angle) =>
-    update((d) => {
-      const list = d.anglesBySet[setId] ?? [];
-      return { ...d, anglesBySet: { ...d.anglesBySet, [setId]: list.includes(angle) ? list.filter((a) => a !== angle) : [...list, angle] } };
-    });
+  const setAngles = (setId, list) =>
+    update((d) => ({ ...d, anglesBySet: { ...d.anglesBySet, [setId]: ANGLES.map((a) => a.key).filter((k) => list.includes(k)) } }));
+  const toggleAngle = (setId, angle) => {
+    const list = draft.anglesBySet[setId] ?? [];
+    setAngles(setId, list.includes(angle) ? list.filter((a) => a !== angle) : [...list, angle]);
+  };
+  const saveNew = (set) => {
+    addModelSet(set);
+    setCreating(null);
+    toggleSet(set);
+  };
+  const remove = async (set) => {
+    setDeleteError("");
+    try {
+      await removeModelSet(set.id);
+      // drop it from this draft too
+      update((d) => {
+        const anglesBySet = { ...d.anglesBySet };
+        delete anglesBySet[set.id];
+        return { ...d, modelSetIds: d.modelSetIds.filter((x) => x !== set.id), anglesBySet };
+      });
+      setFocusId(null);
+    } catch (err) {
+      setDeleteError(errorText(err));
+    } finally {
+      setConfirmDelete(false);
+    }
+  };
 
+  // ---- left: library controls
   const panel = (
-    <div className="space-y-5">
-      <AuroraButton className="w-full" onClick={() => setShoot(true)}>
-        <Plus className="h-4 w-4" /> New model set
-      </AuroraButton>
+    <div className="space-y-8 p-6">
+      <p className="label text-[var(--text-3)]">Library</p>
+      <div className="space-y-2">
+        <Button variant="solid" className="w-full" onClick={() => setCreating("generate")}>
+          <Plus className="h-4 w-4" /> New model set
+        </Button>
+        <Button className="w-full" onClick={() => setCreating("upload")}>
+          <Upload className="h-4 w-4" /> Upload photos
+        </Button>
+      </div>
       <label className="relative block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-3)]" />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search models" className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-2.5 pl-9 pr-3 text-sm text-white placeholder:text-[var(--text-3)] focus:outline-none" />
+        <span className="label mb-2 block text-[var(--text-3)]">Search</span>
+        <Search className="pointer-events-none absolute bottom-2.5 left-0 h-4 w-4 text-[var(--text-3)]" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Model name"
+          className="inline-edit w-full border-0 border-b border-[var(--line-2)] bg-transparent pb-2 pl-6 pr-0 text-base text-[var(--text)] caret-[var(--accent)] placeholder:text-[var(--mute)] focus:border-[var(--text)]"
+        />
       </label>
       <div>
-        <Label>Model</Label>
-        <Segmented options={[["All", "All"], ["Men", "Men"], ["Women", "Women"]]} value={gender} onChange={setGender} />
+        <p className="label mb-2 text-[var(--text-3)]">Model</p>
+        <Segmented label="Model" options={[["All", "All"], ["Men", "Men"], ["Women", "Women"]]} value={gender} onChange={setGender} />
       </div>
       <div>
-        <Label>Source</Label>
-        <Segmented options={[["All", "All"], ["Generated", "AI"], ["Uploaded", "Photos"]]} value={source} onChange={setSource} />
+        <p className="label mb-2 text-[var(--text-3)]">Source</p>
+        <Segmented label="Source" options={[["All", "All"], ["Generated", "AI"], ["Uploaded", "Photos"]]} value={source} onChange={setSource} />
       </div>
-      <GhostButton className="w-full">
-        <Upload className="h-4 w-4" /> Upload photos as a set
-      </GhostButton>
-      <p className="text-xs text-[var(--text-3)]">{draft.modelSetIds.length} selected · {modelSets.length} in library</p>
+      <dl className="grid grid-cols-2 border-t border-[var(--line)] pt-4">
+        <div>
+          <dt className="label text-[var(--text-3)]">Selected</dt>
+          <dd className="mt-1 font-mono text-2xl">{String(draft.modelSetIds.length).padStart(2, "0")}</dd>
+        </div>
+        <div>
+          <dt className="label text-[var(--text-3)]">Angles</dt>
+          <dd className="mt-1 font-mono text-2xl">{String(chosenAngles).padStart(2, "0")}</dd>
+        </div>
+      </dl>
     </div>
   );
 
+  // ---- centre: the card wall
   const stage = (
-    <>
-      <StageHeader step={step} index={index} />
-      {shown.length === 0 ? (
-        <div className="glass grid h-64 place-items-center rounded-3xl text-center">
-          <div>
-            <p className="font-display text-xl text-white">No model sets match</p>
-            <p className="mt-1 text-sm text-[var(--text-2)]">Change the filters, or create one.</p>
-          </div>
-        </div>
-      ) : (
-        <Stagger className="grid grid-cols-2 gap-5 md:grid-cols-3 2xl:grid-cols-4">
-          {shown.map((set) => {
-            const n = draft.modelSetIds.indexOf(set.id);
-            return (
-              <StaggerItem key={set.id}>
-                <TiltCard selected={n >= 0} onClick={() => toggleSet(set)} aria-pressed={n >= 0}>
-                  <ModelCover set={set} />
-                  {n >= 0 && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={spring} className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-aurora text-xs font-bold text-white shadow-lg">
-                      {n + 1}
-                    </motion.span>
-                  )}
-                  <div className="p-3">
-                    <p className="truncate text-sm font-medium text-white">{set.name}</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      <Chip>{set.gender}</Chip>
-                      <Chip tone={set.source === "Generated" ? "accent" : "default"}>{set.source === "Generated" ? "AI" : "Photos"}</Chip>
-                      <Chip>{set.angles.length} angles</Chip>
-                    </div>
-                  </div>
-                </TiltCard>
-              </StaggerItem>
-            );
-          })}
-        </Stagger>
-      )}
-      {portal && createPortal(
-        <AnimatePresence>{shoot && <Photoshoot onClose={() => setShoot(false)} onSave={(set) => (setModelSets((all) => [set, ...all]), setShoot(false), toggleSet(set))} />}</AnimatePresence>,
-        portal,
-      )}
-    </>
-  );
-
-  const inspector = focus ? (
-    <div className="space-y-4">
-      <div>
-        <p className="font-display text-lg font-semibold text-white">{focus.name}</p>
-        <p className="text-xs text-[var(--text-3)]">
-          {focus.gender} · {focus.source === "Generated" ? "AI generated" : "Photoshoot"}
+    <div className="p-6 md:p-8">
+      <div className="mb-8">
+        <p className="label mb-3 flex items-center gap-2 text-[var(--text-3)]">
+          <step.icon className="h-4 w-4 text-[var(--accent)]" strokeWidth={1.75} aria-hidden="true" />
+          Step {String(index + 1).padStart(2, "0")} — {step.label}
+        </p>
+        <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.035em] md:text-5xl">{step.title}</h1>
+        <p className="mt-3 max-w-xl text-[var(--text-2)]">
+          Pick one or more model sets, then choose their angles. Angles that can&apos;t show this design are greyed out.
         </p>
       </div>
-      {!draft.modelSetIds.includes(focus.id) && <p className="rounded-xl bg-white/[0.04] p-3 text-xs text-[var(--text-2)]">Select this set to choose its angles.</p>}
-      <Label>Angles for this product</Label>
-      <ul className="space-y-2">
+
+      {libraryStatus === "error" && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 border border-[var(--error)] px-4 py-3 text-sm" role="alert">
+          <span className="flex-1 text-[var(--text)]">Couldn&apos;t load saved model sets: {libraryError}</span>
+          <button type="button" onClick={reloadLibrary} className="label flex items-center gap-1.5 hover:text-[var(--accent)]">
+            <RotateCw className="h-3.5 w-3.5" /> Retry
+          </button>
+        </div>
+      )}
+      {libraryStatus === "loading" && (
+        <p className="label mb-6 flex items-center gap-2 text-[var(--text-3)]" aria-live="polite">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--accent)]" /> Loading saved model sets…
+        </p>
+      )}
+      {modelSets.length === 0 ? (
+        <div className="flex h-72 flex-col items-center justify-center border border-dashed border-[var(--line-2)] text-center">
+          <p className="text-2xl font-semibold tracking-[-0.02em]">No model sets yet</p>
+          <p className="mt-2 text-sm text-[var(--text-2)]">Generate one with AI, or upload your own photoshoot.</p>
+          <Button variant="solid" className="mt-6" onClick={() => setCreating("generate")}>
+            <Plus className="h-4 w-4" /> New model set
+          </Button>
+        </div>
+      ) : shown.length === 0 ? (
+        <div className="flex h-48 flex-col items-center justify-center border border-dashed border-[var(--line-2)] text-center">
+          <p className="text-lg font-medium">No model sets match</p>
+          <button type="button" onClick={() => (setGender("All"), setSource("All"), setQuery(""))} className="label mt-3 text-[var(--accent)] hover:underline">
+            Clear filters
+          </button>
+        </div>
+      ) : (
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 2xl:grid-cols-4">
+          {shown.map((set, i) => (
+            <motion.li key={set.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease, delay: Math.min(i, 8) * 0.03 }}>
+              <ModelCard set={set} order={draft.modelSetIds.indexOf(set.id)} focused={focusId === set.id} onToggle={() => toggleSet(set)} onFocus={() => setFocusId(set.id)} />
+            </motion.li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
+  // ---- right: angles for the focused set
+  const picked = Boolean(focus) && draft.modelSetIds.includes(focus.id);
+  const list = focus ? (draft.anglesBySet[focus.id] ?? []) : [];
+  const inspector = !focus ? (
+    <div className="flex h-full flex-col justify-center p-6 text-center">
+      <CircleDot className="mx-auto mb-3 h-5 w-5 text-[var(--text-3)]" />
+      <p className="text-sm text-[var(--text-2)]">Pick a model set to choose its angles.</p>
+    </div>
+  ) : (
+    <div className="space-y-6 p-6">
+      <div>
+        <p className="text-2xl font-medium tracking-[-0.02em]">{focus.name}</p>
+        <p className="mt-1 text-xs text-[var(--text-3)]">
+          {focus.gender} · {focus.source === "Generated" ? "AI generated" : "Photoshoot"} · {focus.angles.length} angles
+        </p>
+      </div>
+      {!picked ? (
+        <Button variant="solid" className="w-full" onClick={() => toggleSet(focus)}>
+          <Plus className="h-4 w-4" /> Use this model set
+        </Button>
+      ) : (
+        <div className="flex items-center justify-between">
+          <p className="label text-[var(--text-3)]">Angles for this product</p>
+          <span className="flex gap-3">
+            <button type="button" onClick={() => setAngles(focus.id, focus.angles.filter(usable))} className="label text-[var(--text-2)] hover:text-[var(--text)]">
+              All
+            </button>
+            <button type="button" onClick={() => setAngles(focus.id, [])} className="label text-[var(--text-2)] hover:text-[var(--text)]">
+              None
+            </button>
+          </span>
+        </div>
+      )}
+      <ul className="border-t border-[var(--line)]">
         {focus.angles.map((angle) => {
           const ok = usable(angle);
-          const on = (draft.anglesBySet[focus.id] ?? []).includes(angle);
-          const reason = angle === "side" ? "Side shows the fit, no print" : `No ${ANGLES.find((a) => a.key === angle).takes.join(" / ")} file`;
+          const on = list.includes(angle);
+          const why = angle === "side" ? "Shows the fit; no print" : `Needs a ${takesOf(angle).join(" or ")} file`;
           return (
-            <li key={angle}>
+            <li key={angle} className="border-b border-[var(--line)]">
               <button
                 type="button"
-                disabled={!draft.modelSetIds.includes(focus.id)}
+                role="checkbox"
+                aria-checked={on}
+                disabled={!picked || !ok}
                 onClick={() => toggleAngle(focus.id, angle)}
-                className={`flex w-full items-center gap-3 rounded-xl border p-2 text-left disabled:cursor-not-allowed ${on ? "border-[#7c5cff]/40 bg-[#7c5cff]/10" : "border-white/[0.06] hover:border-white/15"} ${ok ? "" : "opacity-50"}`}
+                className={`flex w-full items-center gap-3 py-2 text-left transition-colors enabled:hover:bg-[var(--panel)] disabled:cursor-not-allowed ${ok ? "" : "opacity-50"}`}
               >
-                <ModelFigure angle={angle} tee={GREEN} skin={focus.skin} hair={focus.hair} className="h-14 w-11 shrink-0 rounded-lg" />
+                <AngleImage set={focus} angle={angle} className="h-14 w-11 shrink-0" />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm text-white">{angleLabel(angle)}</span>
-                  <span className="block truncate text-[11px] text-[var(--text-3)]">{ok ? (focus.boxes.includes(angle) ? "Box saved" : "Needs a box") : reason}</span>
+                  <span className="block text-sm">{angleLabel(angle)}</span>
+                  <span className="block truncate text-[11px] text-[var(--text-3)]">
+                    {ok ? (focus.boxes?.includes(angle) ? "Print box saved" : "Needs a print box (step 4)") : why}
+                  </span>
                 </span>
-                <span className={`grid h-5 w-5 place-items-center rounded ${on ? "bg-aurora" : "border border-white/20"}`}>{on && <Check className="h-3.5 w-3.5" />}</span>
+                <span
+                  className={`mr-1 grid h-4 w-4 shrink-0 place-items-center border ${on ? "border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-ink)]" : "border-[var(--line-2)]"}`}
+                  aria-hidden="true"
+                >
+                  {on && <Check className="h-3 w-3" strokeWidth={3} />}
+                </span>
               </button>
             </li>
           );
         })}
       </ul>
+      {picked && (
+        <button type="button" onClick={() => toggleSet(focus)} className="label block text-[var(--text-3)] hover:text-[var(--text)]">
+          Don&apos;t use for this product
+        </button>
+      )}
+      {!focus.builtin && (
+        <div className="border-t border-[var(--line)] pt-4">
+          {confirmDelete ? (
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="flex-1 text-[var(--text-2)]">Delete from the library for everyone?</span>
+              <button type="button" onClick={() => remove(focus)} className="label h-8 rounded-md bg-[var(--error)] px-3 text-[var(--accent-ink)]">
+                Delete
+              </button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="label h-8 px-2 text-[var(--text-2)] hover:text-[var(--text)]">
+                Keep
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setConfirmDelete(true)} className="label flex items-center gap-2 text-[var(--text-3)] hover:text-[var(--error)]">
+              <Trash2 className="h-3.5 w-3.5" /> Delete from library
+            </button>
+          )}
+          {deleteError && <p className="mt-2 text-xs text-[var(--error)]">{deleteError}</p>}
+        </div>
+      )}
     </div>
-  ) : (
-    <p className="text-sm text-[var(--text-3)]">Select a model set to choose its angles.</p>
   );
 
-  return <Workspace panel={panel} panelTitle="Library" stage={stage} inspector={inspector} inspectorTitle="Angles" />;
+  return (
+    <>
+      <div className="scroll-y h-full lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden xl:grid-cols-[19rem_minmax(0,1fr)_20rem]">
+        <aside className="border-b border-[var(--line)] lg:overflow-y-auto lg:border-b-0 lg:border-r">{panel}</aside>
+        <div className="lg:overflow-y-auto">
+          {stage}
+          <div className="border-t border-[var(--line)] xl:hidden">{inspector}</div>
+        </div>
+        <aside className="hidden border-l border-[var(--line)] xl:block xl:overflow-y-auto">{inspector}</aside>
+      </div>
+      {creating === "generate" && <Photoshoot onClose={() => setCreating(null)} />}
+      {creating === "upload" && <UploadSet onClose={() => setCreating(null)} onSave={saveNew} />}
+    </>
+  );
 };
 
 export default ModelsStep;
