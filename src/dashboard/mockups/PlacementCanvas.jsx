@@ -11,7 +11,7 @@ const HIT_RADIUS = 12;
 const ROTATE_STALK = 30; // screen px from the top edge to the rotate handle
 const COLOURS = { tab: "#16a34a", custom: "#ea580c" };
 
-const PlacementCanvas = ({ image, width, height, quad, custom, freeMode, showBox = true, onDrag, onCommit }) => {
+const PlacementCanvas = ({ image, width, height, quad, custom, freeMode, showBox = true, onDrag, onCommit, colour: boxColour, maxHeight = 0.8 }) => {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const dragRef = useRef(null);
@@ -27,7 +27,7 @@ const PlacementCanvas = ({ image, width, height, quad, custom, freeMode, showBox
   useEffect(() => {
     const wrap = wrapRef.current;
     if (!wrap || !width) return undefined;
-    const fit = () => setScale(Math.min(wrap.clientWidth / width, (window.innerHeight * 0.8) / height, 1));
+    const fit = () => setScale(Math.min(wrap.clientWidth / width, (window.innerHeight * maxHeight) / height, 1));
     fit();
     const observer = new ResizeObserver(fit);
     observer.observe(wrap);
@@ -36,7 +36,7 @@ const PlacementCanvas = ({ image, width, height, quad, custom, freeMode, showBox
       observer.disconnect();
       window.removeEventListener("resize", fit);
     };
-  }, [width, height]);
+  }, [width, height, maxHeight]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -54,7 +54,7 @@ const PlacementCanvas = ({ image, width, height, quad, custom, freeMode, showBox
     ctx.drawImage(image, 0, 0, w, h);
     if (!live || !showBox) return;
 
-    const colour = custom ? COLOURS.custom : COLOURS.tab;
+    const colour = boxColour ?? (custom ? COLOURS.custom : COLOURS.tab);
     const points = live.map(([x, y]) => [x * scale, y * scale]);
     ctx.strokeStyle = colour;
     ctx.lineWidth = 2;
@@ -78,7 +78,7 @@ const PlacementCanvas = ({ image, width, height, quad, custom, freeMode, showBox
     ctx.fillStyle = "#fff";
     ctx.fill();
     ctx.stroke();
-  }, [image, width, height, scale, live, custom, showBox]);
+  }, [image, width, height, scale, live, custom, showBox, boxColour]);
 
   const toPhoto = (event) => {
     const rect = canvasRef.current.getBoundingClientRect();

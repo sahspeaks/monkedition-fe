@@ -5,7 +5,7 @@ import { STEPS } from "./steps";
 const KEY = "monk-studio-drafts";
 
 /** Steps with a real screen use their own rule (steps.js); the rest use "Mark as done". */
-export const BUILT_STEPS = new Set(["design", "models", "colours"]);
+export const BUILT_STEPS = new Set(["design", "models", "colours", "placement"]);
 
 const emptyDesign = () => ({ name: "", categoryId: null, series: "", categoryPath: "", files: [] });
 
@@ -17,6 +17,7 @@ const normalise = (d) => ({
   anglesBySet: d.anglesBySet && typeof d.anglesBySet === "object" ? d.anglesBySet : {},
   colours: Array.isArray(d.colours) ? d.colours : [],
   variantByColour: d.variantByColour && typeof d.variantByColour === "object" ? d.variantByColour : {},
+  placements: d.placements && typeof d.placements === "object" ? d.placements : {},
 });
 
 export const loadDrafts = () => {
@@ -39,7 +40,7 @@ export const saveDrafts = (drafts) => {
 
 export const newDraft = () => {
   const now = Date.now();
-  return { id: Math.random().toString(36).slice(2, 10), name: "Untitled product", doneSteps: [], design: emptyDesign(), modelSetIds: [], anglesBySet: {}, colours: [], variantByColour: {}, createdAt: now, updatedAt: now };
+  return { id: Math.random().toString(36).slice(2, 10), name: "Untitled product", doneSteps: [], design: emptyDesign(), modelSetIds: [], anglesBySet: {}, colours: [], variantByColour: {}, placements: {}, createdAt: now, updatedAt: now };
 };
 
 export const stepDone = (draft, i) => {

@@ -1,192 +1,471 @@
-// Step 4: one box per model set × angle, saved for every colour. The prototype
-// box moves and resizes; the real canvas (rotate, free reshape, live render)
-// is the existing PlacementCanvas, restyled, in phase 4.
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, Check, Minus, Plus, RotateCcw, RotateCw, Save } from "lucide-react";
-import Workspace from "../ui/Workspace";
-import ModelFigure from "../ui/ModelFigure";
-import { AuroraButton, Chip, GhostButton, Kbd, Label, SelectInput, spring } from "../ui/primitives";
-import { ANGLES, angleLabel, colourOf } from "../data/sample";
-import { boxesToSet } from "../steps";
+// Step 4: one print box per model set × angle × slot, saved in the backend and
+// shared by every product that uses the set. The canvas shows the real
+// preview (photo recoloured, design printed); a strip shows the same box on
+// every chosen colour. Spec: docs/STUDIO_PLAN.md §5.6.
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, Loader2, Minus, Plus, RotateCcw, RotateCw, Save, Undo2 } from "lucide-react";
+import PlacementCanvas from "../../dashboard/mockups/PlacementCanvas";
+import * as G from "../../dashboard/mockups/geometry";
+import { errorText } from "../../dashboard/api";
 import { useStudio } from "../context";
-import { Segmented, Slider, StageHeader } from "./common";
+import { angleLabel } from "../data/sample";
+import { colourOf, isDarkFabric } from "../palette";
+import { DEFAULT_PARAMS, fetchPlacements, placementKey, renderPreview, savePlacement } from "../placementStore";
+import { mockupsApi } from "../../dashboard/mockups/api";
+import { boxesToSet } from "../steps";
+import Segmented from "../ui/Segmented";
+import { Button } from "../ui/Shell";
 
-const DEFAULT_BOX = { front: [39, 37, 22, 21], front_45: [41, 37, 19, 21], closeup: [36, 38, 28, 30], back: [36, 36, 28, 29], rear_45: [39, 36, 23, 29] };
+const W = 1200; // model photos are 1200 × 1500 (4:5); the canvas works in these pixels
+const H = 1500;
+const ACCENT = "#ff4f1a";
+const SLOT_NAMES = { FR: "Front print", BK: "Back print", LP: "Pocket print" };
+const SLIDERS = [
+  ["fold", "Fold strength", 0, 2, 0.05],
+  ["shadow", "Shadow", 0, 2, 0.05],
+  ["opacity", "Opacity", 0.3, 1, 0.02],
+  ["mask", "Mask tightness", 0, 1, 0.05],
+];
 
-const BoxEditor = ({ box, setBox, colourHex, angle, set }) => {
-  const ref = useRef(null);
-  const pan = (fn) => (_, info) => {
-    const r = ref.current.getBoundingClientRect();
-    fn((info.delta.x / r.width) * 100, (info.delta.y / r.height) * 100);
-  };
-  const [x, y, w, h] = box;
-  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-  return (
-    <div ref={ref} className="relative mx-auto aspect-[4/5] w-full max-w-[min(100%,52vh)] overflow-hidden rounded-3xl shadow-[0_40px_120px_-40px_rgba(124,92,255,0.45)]">
-      <ModelFigure angle={angle} tee={colourHex} skin={set?.skin} hair={set?.hair} className="absolute inset-0 h-full w-full" />
-      <motion.div
-        className="absolute cursor-move touch-none rounded-sm"
-        style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, height: `${h}%`, background: "linear-gradient(135deg, rgba(124,92,255,0.25), rgba(255,92,138,0.25), rgba(255,181,71,0.25))", boxShadow: "0 0 0 1.5px #ff5c8a" }}
-        onPan={pan((dx, dy) => setBox([clamp(x + dx, 0, 100 - w), clamp(y + dy, 0, 100 - h), w, h]))}
-      >
-        {[
-          ["-left-1.5 -top-1.5", -1, -1],
-          ["-right-1.5 -top-1.5", 1, -1],
-          ["-right-1.5 -bottom-1.5", 1, 1],
-          ["-left-1.5 -bottom-1.5", -1, 1],
-        ].map(([pos, sx, sy]) => (
-          <motion.span
-            key={pos}
-            className={`absolute ${pos} h-3 w-3 cursor-nwse-resize touch-none rounded-full bg-white shadow`}
-            onPan={pan((dx) => {
-              const nw = clamp(w + dx * sx, 5, 80);
-              const nh = (nw / w) * h; // keep proportions
-              setBox([sx < 0 ? x + (w - nw) : x, sy < 0 ? y + (h - nh) : y, nw, nh]);
-            })}
-          />
-        ))}
-        <span className="absolute -top-7 left-1/2 h-5 w-px -translate-x-1/2 bg-[#ff5c8a]" />
-        <span className="absolute -top-9 left-1/2 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-[#ff5c8a] bg-[#0a0a0c]" title="Rotate" />
-      </motion.div>
-    </div>
-  );
-};
+const toPx = (q) => q.map(([x, y]) => [x * W, y * H]);
+const toFr = (q) => q.map(([x, y]) => [+(x / W).toFixed(5), +(y / H).toFixed(5)]);
+const loadImage = (src) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Couldn't show the preview"));
+    img.src = src;
+  });
 
 const PlacementStep = ({ draft, update, step, index }) => {
   const { modelSets } = useStudio();
-  const keys = useMemo(() => boxesToSet(draft), [draft]);
-  const [current, setCurrent] = useState(keys.find((k) => !draft.boxes[k]) ?? keys[0]);
-  const [boxes, setBoxes] = useState({});
-  const [fit, setFit] = useState("contain");
-  const [params, setParams] = useState({ fold: 0.9, shadow: 1.1, opacity: 0.95, mask: 1 });
-  const [colour, setColour] = useState(draft.colours[0] ?? "Bk");
+  const files = draft.design.files;
+  const hasDark = files.some((f) => f.variant === "dark");
+
+  // every box this product needs
+  const items = useMemo(
+    () =>
+      boxesToSet(draft)
+        .map((key) => {
+          const [setId, angle, slot] = key.split(":");
+          const set = modelSets.find((m) => m.id === setId);
+          return set?.photos?.[angle] ? { key, setId, angle, slot, set, src: set.photos[angle] } : null;
+        })
+        .filter(Boolean),
+    [draft, modelSets],
+  );
+  const [currentKey, setCurrentKey] = useState(() => items.find((i) => !draft.placements[i.key])?.key ?? items[0]?.key ?? null);
+  const item = items.find((i) => i.key === currentKey) ?? items[0] ?? null;
+
+  const [edits, setEdits] = useState({}); // key -> unsaved box
+  const [suggested, setSuggested] = useState({}); // key -> quad (fractions)
+  const [loadState, setLoadState] = useState({ loading: true, error: "" });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [justSaved, setJustSaved] = useState(null);
+  const [freeMode, setFreeMode] = useState(false);
+  const [previewCode, setPreviewCode] = useState(draft.colours[0] ?? null);
 
+  // boxes already saved for these sets (by anyone, for any product) become this draft's boxes
   useEffect(() => {
-    if (!keys.includes(current)) setCurrent(keys[0]);
-  }, [keys, current]);
+    let live = true;
+    fetchPlacements(draft.modelSetIds)
+      .then((list) => {
+        if (!live) return;
+        const found = Object.fromEntries(list.map((p) => [placementKey(p.setId, p.angle, p.slot), p]));
+        update((d) => ({ ...d, placements: { ...d.placements, ...found } }));
+        setLoadState({ loading: false, error: "" });
+      })
+      .catch((err) => live && setLoadState({ loading: false, error: errorText(err) }));
+    return () => {
+      live = false;
+    };
+    // load once per visit
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  if (!current) {
-    return <Workspace stage={<><StageHeader step={step} index={index} /><p className="glass rounded-2xl p-8 text-center text-[var(--text-2)]">No angle in this product takes a print. Go back to Models and pick front or back angles.</p></>} />;
-  }
+  // a starting box from where the garment is, for boxes not saved yet
+  useEffect(() => {
+    if (!item || draft.placements[item.key] || suggested[item.key]) return;
+    mockupsApi
+      .suggestBox(item.src, item.slot)
+      .then(({ quad }) => setSuggested((s) => ({ ...s, [item.key]: quad })))
+      .catch(() => setSuggested((s) => ({ ...s, [item.key]: [[0.32, 0.3], [0.68, 0.3], [0.68, 0.62], [0.32, 0.62]] })));
+  }, [item, draft.placements, suggested]);
 
-  const [setId, angle] = current.split(":");
-  const set = modelSets.find((m) => m.id === setId);
-  const box = boxes[current] ?? DEFAULT_BOX[angle] ?? DEFAULT_BOX.front;
-  const setBox = (b) => setBoxes((all) => ({ ...all, [current]: b }));
-  const remaining = keys.filter((k) => !draft.boxes[k]);
-  const save = () => {
-    update((d) => ({ ...d, boxes: { ...d.boxes, [current]: true } }));
-    setJustSaved(current);
-    setTimeout(() => setJustSaved(null), 1200);
-    const next = keys.find((k) => k !== current && !draft.boxes[k]);
-    if (next) setTimeout(() => setCurrent(next), 500);
+  const boxFor = useCallback(
+    (it) => {
+      if (!it) return null;
+      if (edits[it.key]) return edits[it.key];
+      const saved = draft.placements[it.key];
+      if (saved) return { quad: saved.quad, fit: saved.fit, anchor: saved.anchor, params: { ...DEFAULT_PARAMS, ...saved.params } };
+      const quad = suggested[it.key];
+      return quad ? { quad, fit: "contain", anchor: it.slot === "LP" ? "center" : "top", params: { ...DEFAULT_PARAMS } } : null;
+    },
+    [edits, draft.placements, suggested],
+  );
+  const box = boxFor(item);
+  const statusOf = (it) => (edits[it.key] ? "unsaved" : draft.placements[it.key] ? "saved" : "needed");
+  const remaining = items.filter((it) => statusOf(it) !== "saved");
+
+  const setBox = (patch) => item && box && setEdits((e) => ({ ...e, [item.key]: { ...box, ...patch } }));
+  const setQuadPx = (q) => setBox({ quad: toFr(q) });
+
+  // the design file and colour shown in the preview
+  const colours = draft.colours.map(colourOf).filter(Boolean);
+  const previewColour = colourOf(previewCode) ?? colours[0] ?? null;
+  const fileFor = (slot, colour) => {
+    const dark = colour && (draft.variantByColour[colour.code] ?? (isDarkFabric(colour.fabric) && hasDark ? "dark" : "main")) === "dark";
+    return files.find((f) => f.slot === slot && f.variant === (dark ? "dark" : "normal")) ?? files.find((f) => f.slot === slot && f.variant === "normal") ?? files.find((f) => f.slot === slot);
   };
 
+  // ---- live preview: drafts while dragging, a sharp render when still ----
+  const [image, setImage] = useState(null);
+  const [renderState, setRenderState] = useState({ busy: false, error: "" });
+  const seq = useRef(0);
+  const queue = useRef({ busy: false, next: null });
+  const requestFor = useCallback(
+    (quad, w) =>
+      item && box && previewColour
+        ? { file: fileFor(item.slot, previewColour), src: item.src, hex: previewColour.fabric, quad, fit: box.fit, anchor: box.anchor === "center" ? "center" : "top", params: box.params, w }
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [item, box, previewColour, files, draft.variantByColour],
+  );
+  const show = async (blob, mine) => {
+    const img = await loadImage(URL.createObjectURL(blob));
+    if (mine === seq.current) setImage(img);
+  };
+  const draftRender = useCallback(async (body) => {
+    const q = queue.current;
+    q.next = body;
+    if (q.busy) return;
+    q.busy = true;
+    while (q.next) {
+      const next = q.next;
+      q.next = null;
+      const mine = ++seq.current;
+      try {
+        await show(await renderPreview(next), mine);
+      } catch {
+        /* a draft failing is fine; the sharp render reports errors */
+      }
+    }
+    q.busy = false;
+  }, []);
+
+  // the bare photo first, so the canvas has something while the first render runs
+  useEffect(() => {
+    if (!item) return;
+    let live = true;
+    loadImage(item.src)
+      .then((img) => live && setImage((cur) => cur ?? img))
+      .catch(() => {});
+    setImage(null);
+    return () => {
+      live = false;
+    };
+  }, [item]);
+
+  const renderKey = JSON.stringify([item?.key, box, previewColour?.code]);
+  useEffect(() => {
+    const body = box && requestFor(box.quad, 600);
+    if (!body?.file) return undefined;
+    draftRender(body);
+    const t = setTimeout(async () => {
+      const mine = ++seq.current;
+      setRenderState({ busy: true, error: "" });
+      try {
+        await show(await renderPreview({ ...body, w: 1000 }), mine);
+        if (mine === seq.current) setRenderState({ busy: false, error: "" });
+      } catch (err) {
+        if (mine === seq.current) setRenderState({ busy: false, error: errorText(err) });
+      }
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renderKey]);
+
+  // ---- the same box on every chosen colour ----
+  const [strip, setStrip] = useState({});
+  const stripKey = JSON.stringify([item?.key, box, draft.colours]);
+  useEffect(() => {
+    if (!item || !box) return undefined;
+    let live = true;
+    const t = setTimeout(() => {
+      colours.forEach((c) => {
+        const file = fileFor(item.slot, c);
+        if (!file) return;
+        renderPreview({ file, src: item.src, hex: c.fabric, quad: box.quad, fit: box.fit, anchor: box.anchor === "center" ? "center" : "top", params: box.params, w: 300 })
+          .then((blob) => live && setStrip((s) => ({ ...s, [`${item.key}:${c.code}`]: URL.createObjectURL(blob) })))
+          .catch(() => {});
+      });
+    }, 500);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stripKey]);
+
+  // ---- save ----
+  const save = useCallback(async () => {
+    if (!item || !box || saving) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const saved = await savePlacement({ setId: item.setId, angle: item.angle, slot: item.slot, quad: box.quad, fit: box.fit, anchor: box.anchor === "center" ? "center" : "top", params: box.params });
+      update((d) => ({ ...d, placements: { ...d.placements, [item.key]: saved } }));
+      setEdits((e) => {
+        const next = { ...e };
+        delete next[item.key];
+        return next;
+      });
+      setJustSaved(item.key);
+      setTimeout(() => setJustSaved(null), 1400);
+      const next = items.find((it) => it.key !== item.key && !draft.placements[it.key] && !edits[it.key]);
+      if (next) setTimeout(() => setCurrentKey(next.key), 600);
+    } catch (err) {
+      setSaveError(errorText(err));
+    } finally {
+      setSaving(false);
+    }
+  }, [item, box, saving, update, items, draft.placements, edits]);
+
+  const resetToSuggested = async () => {
+    if (!item) return;
+    if (edits[item.key]) {
+      // unsaved changes: drop them and go back to the saved (or suggested) box
+      setEdits((e) => {
+        const next = { ...e };
+        delete next[item.key];
+        return next;
+      });
+      return;
+    }
+    // a saved box: start again from the suggestion (saved only when Save is pressed)
+    try {
+      const quad = suggested[item.key] ?? (await mockupsApi.suggestBox(item.src, item.slot)).quad;
+      setSuggested((s) => ({ ...s, [item.key]: quad }));
+      setBox({ quad });
+    } catch (err) {
+      setSaveError(errorText(err));
+    }
+  };
+
+  // keys: arrows move (Shift ×5), [ ] rotate, ⌘S / Ctrl+S save
+  useEffect(() => {
+    const onKey = (e) => {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName) || !box) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        save();
+        return;
+      }
+      const arrows = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
+      const step = e.shiftKey ? 30 : 6;
+      if (arrows) {
+        e.preventDefault();
+        setQuadPx(G.move(toPx(box.quad), arrows[0] * step, arrows[1] * step));
+      } else if (e.code === "BracketLeft" || e.code === "BracketRight") {
+        e.preventDefault();
+        setQuadPx(G.rotate(toPx(box.quad), (e.code === "BracketLeft" ? -1 : 1) * (e.shiftKey ? 5 : 1)));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [box, save]);
+
+  // ---------- left: the checklist ----------
+  const groups = draft.modelSetIds.map((id) => ({ set: modelSets.find((m) => m.id === id), list: items.filter((it) => it.setId === id) })).filter((g) => g.set && g.list.length);
   const panel = (
-    <div className="space-y-4">
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <Chip tone={remaining.length ? "warning" : "success"}>{remaining.length ? `${remaining.length} to set` : "All set"}</Chip>
-        <GhostButton size="xs" disabled={!remaining.length} onClick={() => setCurrent(remaining.find((k) => k !== current) ?? remaining[0])}>
-          Next needing a box <ArrowRight className="h-3 w-3" />
-        </GhostButton>
+        <p className="label text-[var(--text-3)]">Print boxes</p>
+        <span className="font-mono text-xs text-[var(--text-2)]">
+          <span className="text-[var(--text)]">{String(items.length - remaining.length).padStart(2, "0")}</span> / {String(items.length).padStart(2, "0")}
+        </span>
       </div>
-      {draft.modelSetIds.map((sid) => {
-        const ms = modelSets.find((m) => m.id === sid);
-        const list = keys.filter((k) => k.startsWith(`${sid}:`));
-        if (!list.length) return null;
-        return (
-          <div key={sid}>
-            <Label>{ms?.name}</Label>
-            <ul className="space-y-1.5">
-              {list.map((k) => {
-                const a = k.split(":")[1];
-                const saved = draft.boxes[k];
-                return (
-                  <li key={k}>
-                    <button type="button" onClick={() => setCurrent(k)} className={`flex w-full items-center gap-3 rounded-xl border p-2 text-left ${k === current ? "ring-aurora border-transparent bg-white/[0.06]" : "border-white/[0.06] hover:border-white/15"}`}>
-                      <ModelFigure angle={a} tee={colourOf(colour)?.hex ?? "#111"} skin={ms?.skin} hair={ms?.hair} className="h-12 w-10 shrink-0 rounded-md" />
-                      <span className="flex-1 text-sm text-white">{angleLabel(a)}</span>
-                      {saved ? <Chip tone="success"><Check className="h-3 w-3" /> Saved</Chip> : <Chip tone="warning">Needs box</Chip>}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        );
-      })}
+      <Button className="w-full" disabled={!remaining.filter((it) => it.key !== item?.key).length} onClick={() => setCurrentKey(remaining.find((it) => it.key !== item?.key).key)}>
+        Next needing a box <ArrowRight className="h-4 w-4" />
+      </Button>
+      {loadState.error && <p className="text-xs text-[var(--error)]">Couldn&apos;t load saved boxes: {loadState.error}</p>}
+      {groups.map(({ set, list }) => (
+        <div key={set.id}>
+          <p className="label mb-2 text-[var(--text-3)]">{set.name}</p>
+          <ul className="border-t border-[var(--line)]">
+            {list.map((it) => {
+              const status = statusOf(it);
+              return (
+                <li key={it.key} className="border-b border-[var(--line)]">
+                  <button type="button" onClick={() => setCurrentKey(it.key)} aria-current={it.key === item?.key ? "true" : undefined} className={`flex w-full items-center gap-3 py-2 pr-1 text-left transition-colors hover:bg-[var(--panel)] ${it.key === item?.key ? "bg-[var(--panel)]" : ""}`}>
+                    <img src={it.src} alt="" className="h-14 w-11 shrink-0 object-cover" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm">{angleLabel(it.angle)}</span>
+                      <span className="block text-[11px] text-[var(--text-3)]">
+                        <span className={`font-mono ${it.key === item?.key ? "text-[var(--accent)]" : ""}`}>{it.slot}</span> · {SLOT_NAMES[it.slot]}
+                      </span>
+                    </span>
+                    {status === "saved" ? (
+                      <span className="label flex items-center gap-1 !text-[10px] text-[var(--success)]">
+                        <Check className="h-3 w-3" /> Saved
+                      </span>
+                    ) : status === "unsaved" ? (
+                      <span className="label !text-[10px] text-[var(--accent)]">Unsaved</span>
+                    ) : (
+                      <span className="label !text-[10px] text-[var(--text-3)]">Needs box</span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 
+  // ---------- centre: canvas + colour strip ----------
+  const quadPx = box ? toPx(box.quad) : null;
   const stage = (
-    <>
-      <StageHeader step={step} index={index}>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <GhostButton size="xs" aria-label="Smaller" onClick={() => setBox([box[0] + box[2] * 0.025, box[1] + box[3] * 0.025, box[2] * 0.95, box[3] * 0.95])}><Minus className="h-3.5 w-3.5" /></GhostButton>
-          <GhostButton size="xs" aria-label="Bigger" onClick={() => setBox([box[0] - box[2] * 0.025, box[1] - box[3] * 0.025, box[2] * 1.05, box[3] * 1.05])}><Plus className="h-3.5 w-3.5" /></GhostButton>
-          <GhostButton size="xs" aria-label="Rotate anticlockwise"><RotateCcw className="h-3.5 w-3.5" /></GhostButton>
-          <GhostButton size="xs" aria-label="Rotate clockwise"><RotateCw className="h-3.5 w-3.5" /></GhostButton>
-          <span className="ml-1 hidden text-[11px] text-[var(--text-3)] md:inline">
-            <Kbd>←↑↓→</Kbd> move · <Kbd>[ ]</Kbd> rotate · <Kbd>⌘S</Kbd> save
-          </span>
+    <div className="p-6 md:p-8">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="label mb-3 flex items-center gap-2 text-[var(--text-3)]">
+            <step.icon className="h-4 w-4 text-[var(--accent)]" strokeWidth={1.75} aria-hidden="true" />
+            Step {String(index + 1).padStart(2, "0")} — {step.label}
+          </p>
+          <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.035em] md:text-5xl">{step.title}</h1>
+          <p className="mt-3 max-w-xl text-[var(--text-2)]">Each box is saved with the model set, so every future product on it starts here.</p>
         </div>
-      </StageHeader>
-      <div className="relative">
-        <p className="mb-3 text-center text-sm text-[var(--text-2)]">
-          {set?.name} · <span className="text-white">{angleLabel(angle)}</span>
-        </p>
-        <BoxEditor box={box} setBox={setBox} colourHex={colourOf(colour)?.hex ?? "#111"} angle={angle} set={set} />
-        {justSaved === current && (
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={spring} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-aurora px-5 py-2.5 font-medium text-white shadow-2xl">
-            <Check className="mr-1 inline h-4 w-4" /> Box saved
-          </motion.div>
+        {box && (
+          <div className="flex flex-wrap items-center gap-1">
+            {[
+              [Minus, "Smaller", () => setQuadPx(G.scale(quadPx, 0.95))],
+              [Plus, "Bigger", () => setQuadPx(G.scale(quadPx, 1.05))],
+              [RotateCcw, "Rotate left", () => setQuadPx(G.rotate(quadPx, -1))],
+              [RotateCw, "Rotate right", () => setQuadPx(G.rotate(quadPx, 1))],
+            ].map(([Icon, label, fn]) => (
+              <button key={label} type="button" onClick={fn} aria-label={label} title={label} className="grid h-9 w-9 place-items-center border border-[var(--line-2)] text-[var(--text-2)] hover:bg-[var(--panel-2)] hover:text-[var(--text)]">
+                <Icon className="h-4 w-4" />
+              </button>
+            ))}
+            <button type="button" onClick={() => setQuadPx(G.rotate(quadPx, -G.angle(quadPx)))} className="label h-9 border border-[var(--line-2)] px-3 text-[var(--text-2)] hover:bg-[var(--panel-2)] hover:text-[var(--text)]">
+              {G.angle(quadPx).toFixed(1)}° · Straighten
+            </button>
+            <button type="button" onClick={() => setFreeMode((v) => !v)} aria-pressed={freeMode} className={`label h-9 border px-3 ${freeMode ? "border-[var(--text)] bg-[var(--text)] text-[var(--ink)]" : "border-[var(--line-2)] text-[var(--text-2)] hover:text-[var(--text)]"}`}>
+              {freeMode ? "Free reshape" : "Keep proportions"}
+            </button>
+          </div>
         )}
       </div>
-      <div className="mt-6">
-        <Label hint="the same box on every colour">Colour check</Label>
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {draft.colours.map((code) => {
-            const c = colourOf(code);
-            return (
-              <button key={code} type="button" onClick={() => setColour(code)} className={`shrink-0 overflow-hidden rounded-xl border ${code === colour ? "ring-aurora border-transparent" : "border-white/10"}`}>
-                <ModelFigure angle={angle} tee={c.hex} skin={set?.skin} hair={set?.hair} print={ANGLES.find((a) => a.key === angle).takes.find((s) => draft.design.files.some((f) => f.slot === s))} className="h-28 w-[5.6rem]" />
-                <span className="block bg-black/50 px-2 py-1 text-[10px] text-[var(--text-2)]">{c.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </>
-  );
 
-  const inspector = (
-    <div className="space-y-5">
-      <SelectInput label="Preset" defaultValue={angle.startsWith("back") || angle === "rear_45" ? "back_large" : "front_large"}>
-        <option value="front_large">Front — Large graphic</option>
-        <option value="front_top_half">Front — Top-half wide</option>
-        <option value="left_chest">Front — Small chest</option>
-        <option value="back_large">Back — Large graphic</option>
-      </SelectInput>
-      <div>
-        <Label>Fit</Label>
-        <Segmented options={[["contain", "Keep aspect"], ["stretch", "Stretch"]]} value={fit} onChange={setFit} />
-      </div>
-      <div className="space-y-3">
-        <Slider label="Fold strength" value={params.fold} min={0} max={2} step={0.05} onChange={(v) => setParams((p) => ({ ...p, fold: v }))} />
-        <Slider label="Shadow" value={params.shadow} min={0} max={2} step={0.05} onChange={(v) => setParams((p) => ({ ...p, shadow: v }))} />
-        <Slider label="Opacity" value={params.opacity} min={0.3} max={1} step={0.02} onChange={(v) => setParams((p) => ({ ...p, opacity: v }))} />
-        <Slider label="Mask tightness" value={params.mask} min={0} max={1} step={0.05} onChange={(v) => setParams((p) => ({ ...p, mask: v }))} />
-      </div>
-      <GhostButton className="w-full">Own box for one design</GhostButton>
-      <AuroraButton className="w-full" onClick={save}>
-        <Save className="h-4 w-4" /> Save as this angle&apos;s box
-      </AuroraButton>
+      {!item ? (
+        <div className="flex h-72 flex-col items-center justify-center border border-dashed border-[var(--line-2)] text-center text-sm text-[var(--text-2)]">
+          No angle in this product takes one of the design&apos;s prints. Go back to Models and choose angles.
+        </div>
+      ) : (
+        <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_14rem]">
+          <div className="relative">
+            <p className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span className="font-medium">{item.set.name}</span>
+              <span className="text-[var(--text-3)]">{angleLabel(item.angle)}</span>
+              <span className="font-mono text-[var(--accent)]">{item.slot}</span>
+              <span className="text-[var(--text-3)]">{SLOT_NAMES[item.slot]}</span>
+              {renderState.busy && <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-3)]" aria-label="Rendering" />}
+            </p>
+            {image && quadPx ? (
+              <PlacementCanvas image={image} width={W} height={H} quad={quadPx} colour={ACCENT} freeMode={freeMode} maxHeight={0.68} onDrag={(q) => draftRender(requestFor(toFr(q), 600))} onCommit={setQuadPx} />
+            ) : (
+              <div className="mx-auto aspect-[4/5] max-h-[68vh] animate-pulse bg-[var(--panel-2)]" />
+            )}
+            {renderState.error && (
+              <p className="mt-3 border border-[var(--error)] px-3 py-2 text-xs text-[var(--error)]" role="alert">
+                Preview failed: {renderState.error}. Is the mockups service running?
+              </p>
+            )}
+            <AnimatePresence>
+              {justSaved === item.key && (
+                <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="label absolute left-1/2 top-1/2 flex -translate-x-1/2 items-center gap-2 bg-[var(--accent)] px-4 py-2.5 text-[var(--accent-ink)]">
+                  <Check className="h-4 w-4" /> Box saved
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
+          <div>
+            <p className="label mb-2 text-[var(--text-3)]">Every colour</p>
+            <div className="flex gap-2 overflow-x-auto pb-1 2xl:grid 2xl:grid-cols-2 2xl:overflow-visible">
+              {colours.map((c) => {
+                const url = strip[`${item.key}:${c.code}`];
+                return (
+                  <button key={c.code} type="button" onClick={() => setPreviewCode(c.code)} aria-pressed={previewColour?.code === c.code} title={c.name} className={`shrink-0 border-2 ${previewColour?.code === c.code ? "border-[var(--accent)]" : "border-transparent hover:border-[var(--line-2)]"}`}>
+                    {url ? <img src={url} alt={c.name} className="aspect-[4/5] w-24 object-cover 2xl:w-full" /> : <span className="block aspect-[4/5] w-24 animate-pulse bg-[var(--panel-2)] 2xl:w-full" />}
+                    <span className="block truncate bg-[var(--panel)] px-1.5 py-1 text-left text-[10px] text-[var(--text-2)]">{c.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
-  return <Workspace panel={panel} panelTitle="Angles" stage={stage} inspector={inspector} inspectorTitle="Box" />;
+  // ---------- right: settings + save ----------
+  const inspector = !item || !box ? (
+    <div className="p-6 text-sm text-[var(--text-2)]">{item ? "Finding the garment…" : "Nothing to place."}</div>
+  ) : (
+    <div className="space-y-6 p-6">
+      <div>
+        <p className="text-2xl font-medium tracking-[-0.02em]">{SLOT_NAMES[item.slot]}</p>
+        <p className="mt-1 text-xs text-[var(--text-3)]">
+          {item.set.name} · {angleLabel(item.angle)}
+        </p>
+      </div>
+      <div>
+        <p className="label mb-2 text-[var(--text-3)]">Fit</p>
+        <Segmented label="Fit" options={[["contain", "Keep aspect"], ["stretch", "Stretch"]]} value={box.fit} onChange={(fit) => setBox({ fit })} />
+      </div>
+      <div>
+        <p className="label mb-2 text-[var(--text-3)]">Align in the box</p>
+        <Segmented label="Align" options={[["top", "Top"], ["center", "Centre"]]} value={box.anchor === "center" ? "center" : "top"} onChange={(anchor) => setBox({ anchor })} />
+      </div>
+      <div className="space-y-4">
+        {SLIDERS.map(([k, label, min, max, stepSize]) => (
+          <label key={k} className="block">
+            <span className="mb-1 flex justify-between text-xs text-[var(--text-2)]">
+              {label} <b className="font-mono font-normal text-[var(--text)]">{Number(box.params[k]).toFixed(2)}</b>
+            </span>
+            <input type="range" min={min} max={max} step={stepSize} value={box.params[k]} onChange={(e) => setBox({ params: { ...box.params, [k]: Number(e.target.value) } })} className="w-full accent-[#ff4f1a]" />
+          </label>
+        ))}
+      </div>
+      <div className="space-y-2 border-t border-[var(--line)] pt-5">
+        <Button variant="solid" className="w-full" onClick={save} disabled={saving || statusOf(item) === "saved"}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {statusOf(item) === "saved" ? "Saved" : "Save box"}
+        </Button>
+        <Button className="w-full" onClick={resetToSuggested} disabled={!edits[item.key] && !draft.placements[item.key]}>
+          <Undo2 className="h-4 w-4" /> {edits[item.key] ? "Discard changes" : "Back to suggested"}
+        </Button>
+        {saveError && <p className="text-xs text-[var(--error)]" role="alert">{saveError}</p>}
+        <p className="pt-2 text-[11px] text-[var(--text-3)]">Arrows move (Shift ×5) · [ ] rotate · ⌘S save. Saved boxes apply to every product on this model set.</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="scroll-y h-full lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden xl:grid-cols-[19rem_minmax(0,1fr)_20rem]">
+      <aside className="border-b border-[var(--line)] lg:overflow-y-auto lg:border-b-0 lg:border-r">{panel}</aside>
+      <div className="lg:overflow-y-auto">
+        {stage}
+        <div className="border-t border-[var(--line)] xl:hidden">{inspector}</div>
+      </div>
+      <aside className="hidden border-l border-[var(--line)] xl:block xl:overflow-y-auto">{inspector}</aside>
+    </div>
+  );
 };
 
 export default PlacementStep;

@@ -56,6 +56,13 @@ export const mockupsApi = {
   startBulk: (body) => call("/bulk", { method: "POST", json: body }),
   bulkStatus: (jobId) => call(`/bulk/${jobId}`),
   bulkZip: (jobId) => call(`/bulk/${jobId}/zip`, { as: "blob" }),
+  /** A starting print box for a slot on a model photo (Studio). */
+  suggestBox: (src, slot) => {
+    const query = new URLSearchParams({ src: new URL(src, window.location.origin).href, slot });
+    return call(`/studio/suggest?${query}`);
+  },
+  /** Studio's live preview: photo, recoloured, with the design printed in the box. */
+  studioRender: (body) => call("/studio/render", { method: "POST", json: { ...body, src: new URL(body.src, window.location.origin).href }, as: "blob" }),
   /** A model photo with its green garment recoloured (Studio). `src` may be a path on this site. */
   recolor: (src, hex, width = 800) => {
     const url = new URL(src, window.location.origin).href;

@@ -3,12 +3,13 @@ import { Crosshair, FileText, Images, Palette, Rocket, ScanBarcode, Upload, User
 import { ANGLES, plannedRenders } from "./data/sample";
 
 const slotsOf = (d) => new Set(d.design.files.map((f) => f.slot));
+/** Every print box this product needs: set × chosen angle × each slot the angle takes and the design has. */
 const usedAnglesNeedingBox = (d) => {
   const slots = slotsOf(d);
   return d.modelSetIds.flatMap((setId) =>
-    (d.anglesBySet[setId] ?? [])
-      .filter((angle) => ANGLES.find((a) => a.key === angle).takes.some((s) => slots.has(s)))
-      .map((angle) => `${setId}:${angle}`),
+    (d.anglesBySet[setId] ?? []).flatMap((angle) =>
+      (ANGLES.find((a) => a.key === angle)?.takes ?? []).filter((s) => slots.has(s)).map((slot) => `${setId}:${angle}:${slot}`),
+    ),
   );
 };
 
@@ -48,8 +49,8 @@ export const STEPS = [
     title: "Place the print",
     subtitle: "Set the box once per angle. It is saved for every colour and future product.",
     missing: (d) => {
-      const left = usedAnglesNeedingBox(d).filter((k) => !d.boxes[k]).length;
-      return left ? `${left} angle${left > 1 ? "s" : ""} still need a box` : null;
+      const left = usedAnglesNeedingBox(d).filter((k) => !d.placements?.[k]).length;
+      return left ? `${left} print box${left > 1 ? "es" : ""} still to save` : null;
     },
   },
   {

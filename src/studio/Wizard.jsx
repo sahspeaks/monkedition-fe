@@ -12,9 +12,10 @@ import { BUILT_STEPS, stepDone } from "./draftStore";
 import DesignStep from "./steps/DesignStep";
 import ModelsStep from "./steps/ModelsStep";
 import ColoursStep from "./steps/ColoursStep";
+import PlacementStep from "./steps/PlacementStep";
 
 /** Steps with a real screen; the others show a placeholder for now. */
-const SCREENS = { design: DesignStep, models: ModelsStep, colours: ColoursStep };
+const SCREENS = { design: DesignStep, models: ModelsStep, colours: ColoursStep, placement: PlacementStep };
 
 const ease = [0.22, 1, 0.36, 1];
 
