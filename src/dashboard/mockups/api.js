@@ -56,6 +56,12 @@ export const mockupsApi = {
   startBulk: (body) => call("/bulk", { method: "POST", json: body }),
   bulkStatus: (jobId) => call(`/bulk/${jobId}`),
   bulkZip: (jobId) => call(`/bulk/${jobId}/zip`, { as: "blob" }),
+  /** A model photo with its green garment recoloured (Studio). `src` may be a path on this site. */
+  recolor: (src, hex, width = 800) => {
+    const url = new URL(src, window.location.origin).href;
+    const query = new URLSearchParams({ src: url, hex: hex.replace("#", ""), w: String(width) });
+    return call(`/studio/recolor?${query}`, { as: "blob" });
+  },
 };
 
 /** Saves a Blob as a file. */

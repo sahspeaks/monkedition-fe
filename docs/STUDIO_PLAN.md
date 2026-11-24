@@ -483,6 +483,25 @@ Publishing reuses the existing product endpoints, so validation stays in one pla
 | **4b. 3D tee viewer** | The `.glb` tee (generated or sourced, §4.6), colour material, front/back decals, fallback image | 1–2 days |
 | **5. Cleanup** | Mockups service on Python 3.12 (newer Gemini SDK needs 3.10+), remove the old Mockups tab, READMEs, deployment notes | ½ day |
 
+**Phase 0a result (2026-11-24): recolouring passes.** Tested on the Men 01
+set (5 angles × black, white, navy, baby blue, mustard, maroon) with
+`monkedition-mockups/studio/recolor.py`: folds, seams and hems survive in
+every colour, no green halo on skin, about 0.1 s per colour per photo. Dark
+colours needed their own shading curve (strong highlights, soft shadows); no
+second dark base or Gemini edit is needed. Follow-ups: each palette colour
+needs a **fabric hex** (the shop's swatch hex like Black `#000000` is a screen
+colour, too pure for cloth); a faint light fringe on some white sleeve edges.
+Gemini consistency across angles: confirmed by hand (the Men 01 photos were
+generated from one reference); automating it waits for the API key.
+
+**Change after phase 0a: colourways are not stored.** Recolouring a photo
+takes ~0.15 s (≈1 ms when cached), so step 3 previews and the step 5 renders
+make colourways on demand through the mockups service
+(`GET /api/v1/studio/recolor?src&hex&w`, cached in memory) instead of saving
+one image per colour to Cloudinary and a `colourways` collection. Step 3 is
+built this way; fabric colours live in `monkedition-fe/src/studio/palette.js`
+for now and should move next to the backend palette.
+
 Phases 0a and 0b can run in parallel. 0a decides whether phases 2–3 go ahead
 as written or change (e.g. a second dark base per angle). 0b finalises the
 design of every screen; phase 4 builds only approved screens.

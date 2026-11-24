@@ -370,7 +370,7 @@ export const UploadSet = ({ onClose, onSave }) => {
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <h3 className="text-3xl font-semibold tracking-[-0.03em]">Your photoshoot, as a set</h3>
-            <p className="mt-2 max-w-xl text-[var(--text-2)]">One photo per angle. Angles are guessed from file names (front, back, side, 45, close); tag the rest. Uploaded photos are used as they are, without recolouring.</p>
+            <p className="mt-2 max-w-xl text-[var(--text-2)]">One photo per angle. Angles are guessed from file names (front, back, side, 45, close); tag the rest. To offer every shop colour, the photos must show the plain chroma-green tee: Studio recolours it.</p>
           </div>
           <Button onClick={() => picker.current.click()}>
             <ImagePlus className="h-4 w-4" /> Add photos
