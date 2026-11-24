@@ -1,0 +1,120 @@
+/* Monk Studio: solid colours only (no gradients, no glass), one signal
+   accent, editorial grotesk type, hairline borders. Dark by default, light on
+   [data-theme="light"]. Scoped to .studio so the shop and dashboard are
+   untouched. See docs/STUDIO_PLAN.md §4.1. */
+@import "@fontsource-variable/schibsted-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
+
+.studio {
+  --ink: #0e0e0e;        /* page */
+  --panel: #161616;      /* raised surfaces */
+  --panel-2: #1d1d1d;    /* hover / pressed */
+  --line: #262626;       /* hairlines */
+  --line-2: #3a3a3a;     /* stronger hairlines, focus-less outlines */
+  --text: #f2efe9;       /* warm off-white */
+  --text-2: #a8a49c;     /* secondary */
+  --text-3: #8a8780;     /* hints, kept above WCAG AA on --ink */
+  --mute: #4a4a4a;       /* locked / disabled */
+  --accent: #ff4f1a;     /* signal orange: current step, primary action */
+  --accent-ink: #0e0e0e; /* text on the accent */
+  --accent-hover: #ff6a3d;
+  --success: #7ee0a1;
+  --error: #ff6b5b;
+  --scrim: rgba(14, 14, 14, 0.9); /* flat overlay over content */
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--text);
+  font-family: "Schibsted Grotesk Variable", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* light: warm paper, near-black type, the same single accent */
+.studio[data-theme="light"] {
+  --ink: #f4f1ea;
+  --panel: #ebe7de;
+  --panel-2: #e2ddd2;
+  --line: #d9d3c7;
+  --line-2: #bfb8aa;
+  --text: #121212;
+  --text-2: #4d4a44;
+  --text-3: #6b675f;
+  --mute: #aaa496;
+  --accent: #e8440f;
+  --accent-ink: #121212;
+  --accent-hover: #ff5a24;
+  --success: #1d8a4b;
+  --error: #d2362a;
+  --scrim: rgba(244, 241, 234, 0.92);
+  color-scheme: light;
+}
+
+/* the global stylesheet sets Inter on *; Studio uses its own type */
+.studio *:not(.font-mono):not(kbd) {
+  font-family: inherit;
+}
+.studio .font-mono,
+.studio kbd {
+  font-family: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+/* small uppercase labels with wide tracking */
+.studio .label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.studio :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* inline text edits show focus with their underline, not a ring */
+.studio .inline-edit:focus,
+.studio .inline-edit:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.studio .scroll-y {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+
+/* checkerboard behind transparent artwork: flat squares (an SVG tile, no gradients) */
+.studio .checker {
+  background-color: #191919;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><rect width='8' height='8' fill='%23222222'/><rect x='8' y='8' width='8' height='8' fill='%23222222'/></svg>");
+  background-size: 16px 16px;
+}
+.studio[data-theme="light"] .checker {
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><rect width='8' height='8' fill='%23e9e5dc'/><rect x='8' y='8' width='8' height='8' fill='%23e9e5dc'/></svg>");
+}
+
+/* solid panel (sheets and drawers) */
+.studio .glass-strong {
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+/* ---- theme switch: circular reveal ----
+   The switch runs inside a View Transition. The browser's default cross-fade
+   is turned off and the new theme is revealed as a growing circle from the
+   toggle (animated from JS, see useTheme.js). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}

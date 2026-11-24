@@ -18,6 +18,7 @@ import {
   ScrollText,
   Settings as SettingsIcon,
   Shirt,
+  Sparkles,
   ShoppingBag,
   Truck,
   Tag,
@@ -47,6 +48,7 @@ import Mockups from "./pages/Mockups";
 
 const NAV = [
   { to: "/dashboard", label: "Overview", icon: Home, end: true },
+  { to: "/studio", label: "Studio", icon: Sparkles },
   { to: "/dashboard/orders", label: "Orders", icon: ShoppingBag },
   { to: "/dashboard/returns", label: "Returns", icon: RotateCcw },
   { to: "/dashboard/qikink", label: "Qikink orders", icon: Truck },

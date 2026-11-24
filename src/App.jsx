@@ -47,10 +47,12 @@ import BottomNavBar from "./components/BottomNavbar";
 
 // Staff only, and in its own chunk so customers never download it.
 const Dashboard = lazy(() => import("./dashboard/Dashboard"));
+// Monk Studio: full-screen design-to-product app for staff, also its own chunk.
+const Studio = lazy(() => import("./studio/StudioApp"));
 
 // The shop's header and footer, which the dashboard replaces with its own.
 const ShopChrome = ({ children }) =>
-  /^\/dashboard|\/receipt$/.test(useLocation().pathname) ? null : children;
+  /^\/(dashboard|studio)|\/receipt$/.test(useLocation().pathname) ? null : children;
 
 const ProtectedRoute = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -103,6 +105,14 @@ function App() {
                     element={
                       <Suspense fallback={null}>
                         <Dashboard />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/studio/*"
+                    element={
+                      <Suspense fallback={<div className="fixed inset-0 bg-[#0a0a0c]" />}>
+                        <Studio />
                       </Suspense>
                     }
                   />
