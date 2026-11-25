@@ -101,7 +101,7 @@ export const STEPS = [
     icon: Rocket,
     title: "Ready to launch",
     subtitle: "Check the summary, then publish to the shop.",
-    missing: (d) => (d.published ? null : "Publish or save as a draft"),
+    missing: (d) => (d.published?.productId ? null : "Publish the product"),
   },
 ];
 
