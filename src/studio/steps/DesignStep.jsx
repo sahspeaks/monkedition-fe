@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, CircleDot, ImagePlus, Plus, RefreshCw, Trash2, Upload, X, XCircle } from "lucide-react";
 import { Button } from "../ui/Shell";
+import { errorText, uploadImage } from "../../dashboard/api";
 import CategorySelect from "../ui/CategorySelect";
 
 const ease = [0.22, 1, 0.36, 1];
@@ -80,7 +81,39 @@ const Ring = ({ value, size = 18 }) => {
   );
 };
 
+const UPLOAD_SIDE = 2400; // the copy used for rendering: plenty for 1200 px product photos
+const UPLOAD_LIMIT = 9.5 * 2 ** 20; // Cloudinary uploads must stay under 10 MB
+
+/** The file as uploaded for rendering: at most 2400 px, transparency kept. */
+const forUpload = (file) =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, UPLOAD_SIDE / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      const base = file.name.replace(/\.[^.]+$/, "");
+      canvas.toBlob((png) => {
+        if (png && png.size <= UPLOAD_LIMIT) return resolve(new File([png], `${base}.png`, { type: "image/png" }));
+        // a very detailed PNG can stay over the limit: WebP keeps transparency and is much smaller
+        canvas.toBlob((webp) => (webp ? resolve(new File([webp], `${base}.webp`, { type: webp.type })) : reject(new Error("could not prepare the file"))), "image/webp", 0.92);
+      }, "image/png");
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("not an image Studio can read"));
+    };
+    img.src = url;
+  });
+
 const checksFor = (f) => [
+  f.url
+    ? { level: "ok", text: "Uploaded for rendering" }
+    : { level: "error", text: f.uploadError ? `Not uploaded: ${f.uploadError}. Replace the file to try again.` : "Not uploaded yet. Replace the file to upload it." },
   { level: f.transparent ? "ok" : "warn", text: f.transparent ? "Transparent background" : "No transparent background: the print will show a box" },
   {
     level: Math.max(f.width, f.height) >= MIN_SIDE ? "ok" : "warn",
@@ -88,7 +121,10 @@ const checksFor = (f) => [
   },
   { level: "ok", text: `${fmtMB(f.sizeMB)} · under the ${MAX_MB} MB limit` },
 ];
-const worst = (f) => (checksFor(f).some((c) => c.level === "warn") ? "warn" : "ok");
+const worst = (f) => {
+  const levels = checksFor(f).map((c) => c.level);
+  return levels.includes("error") ? "error" : levels.includes("warn") ? "warn" : "ok";
+};
 
 const CheckIcon = ({ level, className = "h-4 w-4" }) =>
   level === "ok" ? (
@@ -293,14 +329,23 @@ const DesignStep = ({ draft, update, step, index }) => {
         continue;
       }
       const info = await inspect(file, progress(key));
-      progress(key)(1);
-      setTimeout(() => finish(key), 350); // let the ring complete before it goes
       if (!info) {
+        finish(key);
         problems.push(`${file.name}: not an image Studio can read (use PNG)`);
         continue;
       }
+      // upload a 2400 px copy to Cloudinary: renders (steps 4–5) use it
+      progress(key)(0.92);
+      try {
+        info.url = await uploadImage(await forUpload(file), { scope: "studio-design", name: `${design.series || "Unsorted"}/${design.name.trim() || "Untitled"}` });
+      } catch (err) {
+        info.uploadError = errorText(err);
+        problems.push(`${file.name}: upload failed (${info.uploadError})`);
+      }
+      progress(key)(1);
+      setTimeout(() => finish(key), 350); // let the ring complete before it goes
       if (aim?.replace) {
-        update((d) => ({ ...d, design: { ...d.design, files: d.design.files.map((f) => (f.id === aim.replace ? { ...f, name: file.name, sizeMB, ...info } : f)) } }));
+        update((d) => ({ ...d, design: { ...d.design, files: d.design.files.map((f) => (f.id === aim.replace ? { ...f, name: file.name, sizeMB, url: undefined, uploadError: undefined, ...info } : f)) } }));
         continue;
       }
       const entry = { id: Math.random().toString(36).slice(2, 10), name: file.name, sizeMB, ...info };

@@ -1,207 +1,387 @@
-// Step 5: renders fill in live; keep / reject with swipe or keys; star a main
-// image per colour.
-import { useCallback, useEffect, useMemo, useState } from "react";
+// Step 5: render the product photos (model set × angle × colour, every print
+// in its saved box), upload each to Cloudinary, then keep or reject them and
+// star a main photo per colour. Spec: docs/STUDIO_PLAN.md §5.7.
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useTransform } from "framer-motion";
-import { Check, RefreshCw, Star, X } from "lucide-react";
-import Workspace from "../ui/Workspace";
-import ModelFigure from "../ui/ModelFigure";
-import { Chip, GhostButton, Kbd, Label, ProgressRing } from "../ui/primitives";
-import { angleLabel, colourOf, plannedRenders } from "../data/sample";
+import { AlertTriangle, Check, CircleDot, ExternalLink, Loader2, Play, RefreshCw, Square, Star, X } from "lucide-react";
+import { errorText, uploadImage } from "../../dashboard/api";
+import { mockupsApi } from "../../dashboard/mockups/api";
 import { useStudio } from "../context";
-import { Develop, Segmented, StageHeader } from "./common";
+import { angleLabel } from "../data/sample";
+import { planRenders } from "../renderPlan";
+import Segmented from "../ui/Segmented";
+import { Button } from "../ui/Shell";
 
-const ReviewCard = ({ item, set, state, main, focused, onFocus, onDecide, onStar }) => {
+const ease = [0.22, 1, 0.36, 1];
+const CONCURRENCY = 3;
+const pad = (n) => String(n).padStart(2, "0");
+
+const Swatch = ({ hex }) => <span className="inline-block h-4 w-4 shrink-0 rounded-full" style={{ background: hex, boxShadow: "inset 0 0 0 1px rgba(127,127,127,0.35)" }} aria-hidden="true" />;
+
+/** A photo card; swipe right to keep, left to reject (touch). */
+const Card = ({ item, render, main, focused, busy, onFocus, onDecide, onStar }) => {
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-160, 160], [-10, 10]);
-  const keepGlow = useTransform(x, [0, 120], [0, 1]);
-  const rejectGlow = useTransform(x, [-120, 0], [1, 0]);
+  const keepTint = useTransform(x, [0, 120], [0, 0.35]);
+  const rejectTint = useTransform(x, [-120, 0], [0.35, 0]);
+  const outdated = render && render.signature !== item.signature;
   return (
     <motion.div
-      layout
-      drag="x"
+      layout="position"
+      drag={render ? "x" : false}
       dragSnapToOrigin
-      dragElastic={0.5}
-      style={{ x, rotate }}
-      onDragEnd={(_, info) => {
-        if (info.offset.x > 110) onDecide("keep");
-        else if (info.offset.x < -110) onDecide("reject");
-      }}
-      onClick={onFocus}
-      onDoubleClick={onStar}
-      className={`group relative mb-4 cursor-pointer touch-pan-y break-inside-avoid overflow-hidden rounded-2xl border ${focused ? "ring-aurora border-transparent" : "border-white/[0.08]"} ${state === "reject" ? "opacity-35 grayscale" : ""}`}
+      dragElastic={0.4}
+      style={{ x }}
+      onDragEnd={(_, info) => (info.offset.x > 110 ? onDecide("keep") : info.offset.x < -110 ? onDecide("reject") : null)}
+      className={`relative touch-pan-y border-2 ${focused ? "border-[var(--accent)]" : "border-transparent"}`}
     >
-      <Develop>
-        <ModelFigure angle={item.angle} tee={colourOf(item.code).hex} skin={set?.skin} hair={set?.hair} print={item.slot} className={`w-full ${item.angle === "closeup" ? "aspect-square" : "aspect-[4/5]"}`} />
-      </Develop>
-      <motion.div className="pointer-events-none absolute inset-0 bg-[#3ddc97]/25" style={{ opacity: keepGlow }} />
-      <motion.div className="pointer-events-none absolute inset-0 bg-[#ff5c6c]/25" style={{ opacity: rejectGlow }} />
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-black/80 to-transparent px-3 pb-2 pt-6">
-        <span className="text-[11px] text-white/80">
-          {set?.name.split(" ·")[0]} · {angleLabel(item.angle)}
-        </span>
-        {state === "keep" && <Check className="h-4 w-4 text-[#3ddc97]" />}
-        {state === "reject" && <X className="h-4 w-4 text-[#ff5c6c]" />}
-      </div>
-      <button
-        type="button"
-        onClick={(e) => (e.stopPropagation(), onStar())}
-        aria-label={main ? "Main image" : "Make main image"}
-        className={`absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full backdrop-blur transition ${main ? "bg-aurora text-white" : "bg-black/50 text-white/70 opacity-0 group-hover:opacity-100"}`}
-      >
-        <Star className={`h-4 w-4 ${main ? "fill-white" : ""}`} />
+      <button type="button" onClick={onFocus} onDoubleClick={onStar} className="block w-full text-left" aria-label={`${item.set.name}, ${angleLabel(item.angle)}, ${item.colour.name}`}>
+        <div className={`relative aspect-[4/5] overflow-hidden bg-[var(--panel)] ${render?.status === "reject" ? "opacity-35 grayscale" : ""}`}>
+          {render ? (
+            <img src={render.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+          ) : (
+            <div className={`flex h-full items-center justify-center ${busy ? "animate-pulse bg-[var(--panel-2)]" : ""}`}>
+              {busy ? <Loader2 className="h-5 w-5 animate-spin text-[var(--text-3)]" /> : <span className="label text-[var(--text-3)]">Not rendered</span>}
+            </div>
+          )}
+          <motion.div className="pointer-events-none absolute inset-0 bg-[var(--success)]" style={{ opacity: keepTint }} />
+          <motion.div className="pointer-events-none absolute inset-0 bg-[var(--error)]" style={{ opacity: rejectTint }} />
+          {main && (
+            <span className="absolute left-2 top-2 grid h-7 w-7 place-items-center bg-[var(--accent)] text-[var(--accent-ink)]" title="Main photo">
+              <Star className="h-4 w-4 fill-current" />
+            </span>
+          )}
+          {render?.status === "keep" && (
+            <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center bg-[var(--success)] text-[var(--accent-ink)]" title="Kept">
+              <Check className="h-4 w-4" strokeWidth={3} />
+            </span>
+          )}
+          {render?.status === "reject" && (
+            <span className="absolute right-2 top-2 grid h-7 w-7 place-items-center bg-[var(--error)] text-[var(--accent-ink)]" title="Rejected">
+              <X className="h-4 w-4" strokeWidth={3} />
+            </span>
+          )}
+          {outdated && <span className="label absolute bottom-2 left-2 bg-[var(--accent)] px-1.5 py-0.5 !text-[10px] text-[var(--accent-ink)]">Outdated</span>}
+          {busy && render && <Loader2 className="absolute bottom-2 right-2 h-4 w-4 animate-spin text-[var(--text)]" />}
+        </div>
       </button>
+      <p className="mt-1.5 truncate text-[11px] text-[var(--text-3)]">
+        {angleLabel(item.angle)} · {item.set.name}
+      </p>
     </motion.div>
   );
 };
 
 const ReviewStep = ({ draft, update, step, index }) => {
   const { modelSets } = useStudio();
-  const all = useMemo(() => plannedRenders(draft), [draft]);
-  const [rendered, setRendered] = useState(() => (Object.keys(draft.review).length || Object.keys(draft.mainByColour).length ? all.length : 0));
+  const plan = useMemo(() => planRenders(draft, modelSets), [draft, modelSets]);
+  const renders = draft.renders;
   const [filter, setFilter] = useState("all");
   const [focusId, setFocusId] = useState(null);
+  const [running, setRunning] = useState(null); // { done, total } while rendering
+  const [busyIds, setBusyIds] = useState(new Set());
+  const [failures, setFailures] = useState({}); // id -> message
+  const stopRef = useRef(false);
 
-  useEffect(() => {
-    if (rendered >= all.length) return undefined;
-    const t = setTimeout(() => setRendered((n) => n + 1), 140);
-    return () => clearTimeout(t);
-  }, [rendered, all.length]);
+  const statusOf = (id) => renders[id]?.status ?? null;
+  const todo = plan.filter((it) => !renders[it.id] || renders[it.id].signature !== it.signature);
+  const counts = {
+    keep: plan.filter((it) => statusOf(it.id) === "keep").length,
+    reject: plan.filter((it) => statusOf(it.id) === "reject").length,
+    review: plan.filter((it) => statusOf(it.id) === "review").length,
+  };
 
-  const done = all.slice(0, rendered);
-  const visible = done.filter((r) => filter === "all" || (filter === "todo" ? !draft.review[r.id] : draft.review[r.id] === filter));
-  const focus = all.find((r) => r.id === focusId) ?? visible[0];
-
-  const decide = useCallback((id, state) => update((d) => ({ ...d, review: { ...d.review, [id]: state } })), [update]);
-  const star = useCallback(
-    (item) => update((d) => ({ ...d, mainByColour: { ...d.mainByColour, [item.code]: item.id }, review: { ...d.review, [item.id]: "keep" } })),
-    [update],
+  // ---- rendering: 1200 px JPEG from the mockups service, then Cloudinary ----
+  const renderOne = useCallback(
+    async (it) => {
+      const blob = await mockupsApi.studioRender({ ...it.body, w: 1200, quality: 92 });
+      const file = new File([blob], `${it.id.replace(/:/g, "_")}.jpg`, { type: "image/jpeg" });
+      const url = await uploadImage(file, { scope: "studio-render", draftId: draft.id });
+      update((d) => ({
+        ...d,
+        renders: { ...d.renders, [it.id]: { url, signature: it.signature, status: "review", setId: it.setId, angle: it.angle, code: it.code, renderedAt: Date.now() } },
+      }));
+    },
+    [draft.id, update],
   );
 
-  // keyboard triage: ← reject, → keep, S star, moves to the next image
+  const run = useCallback(
+    async (items) => {
+      if (!items.length || running) return;
+      stopRef.current = false;
+      setFailures({});
+      let done = 0;
+      setRunning({ done, total: items.length });
+      const queue = [...items];
+      const worker = async () => {
+        while (queue.length && !stopRef.current) {
+          const it = queue.shift();
+          setBusyIds((s) => new Set(s).add(it.id));
+          try {
+            await renderOne(it);
+          } catch (err) {
+            setFailures((f) => ({ ...f, [it.id]: errorText(err) }));
+          } finally {
+            setBusyIds((s) => {
+              const next = new Set(s);
+              next.delete(it.id);
+              return next;
+            });
+            done += 1;
+            setRunning((r) => r && { ...r, done });
+          }
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, items.length) }, worker));
+      setRunning(null);
+    },
+    [running, renderOne],
+  );
+
+  // leaving the step stops rendering after the photos in progress (re-armed on
+  // every mount, so React's development double-mount doesn't stop it)
+  useEffect(() => {
+    stopRef.current = false;
+    return () => {
+      stopRef.current = true;
+    };
+  }, []);
+
+  // first visit: render everything
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current || !plan.length) return;
+    started.current = true;
+    if (!Object.keys(renders).length) run(plan);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---- review ----
+  const decide = useCallback(
+    (id, status) => {
+      if (!renders[id]) return;
+      update((d) => ({ ...d, renders: { ...d.renders, [id]: { ...d.renders[id], status } } }));
+    },
+    [renders, update],
+  );
+  const star = useCallback(
+    (it) => {
+      if (!renders[it.id]) return;
+      update((d) => ({ ...d, mainByColour: { ...d.mainByColour, [it.code]: it.id }, renders: { ...d.renders, [it.id]: { ...d.renders[it.id], status: "keep" } } }));
+    },
+    [renders, update],
+  );
+  const keepAll = () =>
+    update((d) => ({
+      ...d,
+      renders: Object.fromEntries(Object.entries(d.renders).map(([id, r]) => [id, r.status === "review" ? { ...r, status: "keep" } : r])),
+    }));
+
+  const visible = plan.filter((it) => filter === "all" || statusOf(it.id) === filter);
+  const focus = plan.find((it) => it.id === focusId) ?? visible[0] ?? null;
+
+  // keys: → keep, ← reject (then the next photo), S star, U undo, R re-render
   useEffect(() => {
     const onKey = (e) => {
       if (!focus || ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
-      const i = visible.findIndex((r) => r.id === focus.id);
+      const i = visible.findIndex((it) => it.id === focus.id);
       const next = () => visible[i + 1] && setFocusId(visible[i + 1].id);
-      if (e.key === "ArrowRight") (decide(focus.id, "keep"), next());
-      else if (e.key === "ArrowLeft") (decide(focus.id, "reject"), next());
-      else if (e.key.toLowerCase() === "s") star(focus);
-      else if (e.key.toLowerCase() === "u") update((d) => {
-        const review = { ...d.review };
-        delete review[focus.id];
-        return { ...d, review };
-      });
+      const k = e.key.toLowerCase();
+      if (e.key === "ArrowRight") (e.preventDefault(), decide(focus.id, "keep"), next());
+      else if (e.key === "ArrowLeft") (e.preventDefault(), decide(focus.id, "reject"), next());
+      else if (k === "s") star(focus);
+      else if (k === "u") decide(focus.id, "review");
+      else if (k === "r" && !running) run([focus]);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [focus, visible, decide, star, update]);
+  }, [focus, visible, decide, star, run, running]);
 
-  const counts = {
-    keep: done.filter((r) => draft.review[r.id] === "keep").length,
-    reject: done.filter((r) => draft.review[r.id] === "reject").length,
-  };
-
+  // ---------- left ----------
+  const failed = Object.entries(failures);
   const panel = (
-    <div className="space-y-5">
-      <div className="grid grid-cols-3 gap-2 text-center">
+    <div className="space-y-7 p-6">
+      <div>
+        <p className="label mb-3 text-[var(--text-3)]">Render</p>
+        {running ? (
+          <div className="space-y-3">
+            <p className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" /> Rendering
+              </span>
+              <span className="font-mono">
+                {pad(running.done)} / {pad(running.total)}
+              </span>
+            </p>
+            <div className="h-[3px] bg-[var(--line)]">
+              <motion.div className="h-full bg-[var(--accent)]" animate={{ width: `${(running.done / running.total) * 100}%` }} transition={{ duration: 0.3, ease }} />
+            </div>
+            <Button className="w-full" onClick={() => (stopRef.current = true)}>
+              <Square className="h-3.5 w-3.5" /> Stop after current
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-[var(--text-2)]">
+              {plan.length} photo{plan.length === 1 ? "" : "s"} · {todo.length ? `${todo.length} new or changed` : "all up to date"}
+            </p>
+            <Button variant="solid" className="w-full" disabled={!todo.length} onClick={() => run(todo)}>
+              <Play className="h-4 w-4" /> Render {todo.length || ""} {todo.length === 1 ? "photo" : "photos"}
+            </Button>
+            <Button className="w-full" disabled={!plan.length} onClick={() => run(plan)}>
+              <RefreshCw className="h-4 w-4" /> Re-render all
+            </Button>
+          </div>
+        )}
+        {failed.length > 0 && (
+          <div className="mt-3 border border-[var(--error)] p-3 text-xs" role="alert">
+            <p className="mb-1 flex items-center gap-2 text-[var(--error)]">
+              <AlertTriangle className="h-3.5 w-3.5" /> {failed.length} failed
+            </p>
+            <p className="text-[var(--text-2)]">{failed[0][1]}</p>
+          </div>
+        )}
+      </div>
+      <dl className="grid grid-cols-3 border-y border-[var(--line)] py-4 text-center">
         {[
-          ["Kept", counts.keep, "text-[#3ddc97]"],
-          ["Rejected", counts.reject, "text-[#ff5c6c]"],
-          ["To review", done.length - counts.keep - counts.reject, "text-white"],
+          ["Kept", counts.keep, "text-[var(--success)]"],
+          ["Rejected", counts.reject, "text-[var(--error)]"],
+          ["To review", counts.review, "text-[var(--text)]"],
         ].map(([label, n, tone]) => (
-          <div key={label} className="rounded-xl bg-white/[0.04] p-3">
-            <p className={`font-mono text-xl ${tone}`}>{n}</p>
-            <p className="text-[10px] uppercase tracking-wider text-[var(--text-3)]">{label}</p>
+          <div key={label}>
+            <dd className={`font-mono text-2xl ${tone}`}>{pad(n)}</dd>
+            <dt className="label mt-1 !text-[10px] text-[var(--text-3)]">{label}</dt>
           </div>
         ))}
-      </div>
+      </dl>
       <div>
-        <Label>Show</Label>
-        <Segmented options={[["all", "All"], ["todo", "To review"], ["keep", "Kept"], ["reject", "Rejected"]]} value={filter} onChange={setFilter} />
+        <p className="label mb-2 text-[var(--text-3)]">Show</p>
+        <Segmented label="Show" options={[["all", "All"], ["review", "To review"], ["keep", "Kept"], ["reject", "Rejected"]]} value={filter} onChange={setFilter} />
       </div>
-      <GhostButton className="w-full" onClick={() => update((d) => ({ ...d, review: Object.fromEntries(all.map((r) => [r.id, d.review[r.id] ?? "keep"])) }))}>
-        <Check className="h-4 w-4" /> Keep all unreviewed
-      </GhostButton>
-      <div className="space-y-1.5 rounded-xl bg-white/[0.03] p-3 text-xs text-[var(--text-2)]">
-        <p><Kbd>→</Kbd> keep · <Kbd>←</Kbd> reject · <Kbd>S</Kbd> star · <Kbd>U</Kbd> undo</p>
-        <p>Touch: swipe right / left, double-tap to star.</p>
-      </div>
+      <Button className="w-full" disabled={!counts.review} onClick={keepAll}>
+        <Check className="h-4 w-4" /> Keep all to review
+      </Button>
+      <p className="text-[11px] leading-relaxed text-[var(--text-3)]">→ keep · ← reject · S star as main · U undo · R re-render. On touch: swipe right or left, double-tap to star.</p>
     </div>
   );
 
+  // ---------- centre ----------
   const stage = (
-    <>
-      <StageHeader step={step} index={index}>
-        {rendered < all.length && (
-          <span className="flex items-center gap-3 text-sm text-[var(--text-2)]">
-            <ProgressRing value={rendered / all.length} /> Rendering <span className="font-mono text-white">{rendered} / {all.length}</span>
-          </span>
-        )}
-      </StageHeader>
-      {draft.colours.map((code) => {
-        const c = colourOf(code);
-        const items = visible.filter((r) => r.code === code);
-        const total = all.filter((r) => r.code === code).length;
-        const made = done.filter((r) => r.code === code).length;
-        return (
-          <section key={code} className="mb-8">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="h-5 w-5 rounded-full" style={{ background: c.hex, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.2)" }} />
-              <h3 className="text-lg font-semibold text-white">{c.name}</h3>
-              {made < total ? <ProgressRing value={made / total} size={22} stroke={2.5} /> : draft.mainByColour[code] ? <Chip tone="success"><Star className="h-3 w-3" /> Main set</Chip> : <Chip tone="warning">Star a main image</Chip>}
-            </div>
-            <div className="columns-2 gap-4 md:columns-3 2xl:columns-4">
-              <AnimatePresence>
-                {items.map((item) => (
-                  <ReviewCard
-                    key={item.id}
-                    item={item}
-                    set={modelSets.find((m) => m.id === item.setId)}
-                    state={draft.review[item.id]}
-                    main={draft.mainByColour[code] === item.id}
-                    focused={focus?.id === item.id}
-                    onFocus={() => setFocusId(item.id)}
-                    onDecide={(s) => decide(item.id, s)}
-                    onStar={() => star(item)}
-                  />
-                ))}
-              </AnimatePresence>
-              {Array.from({ length: Math.max(0, total - made) }).map((_, i) => (
-                <div key={`sk${i}`} className="shimmer mb-4 aspect-[4/5] break-inside-avoid rounded-2xl" />
-              ))}
-            </div>
-          </section>
-        );
-      })}
-    </>
+    <div className="p-6 md:p-8">
+      <div className="mb-8">
+        <p className="label mb-3 flex items-center gap-2 text-[var(--text-3)]">
+          <step.icon className="h-4 w-4 text-[var(--accent)]" strokeWidth={1.75} aria-hidden="true" />
+          Step {pad(index + 1)} — {step.label}
+        </p>
+        <h1 className="text-4xl font-semibold leading-[1] tracking-[-0.035em] md:text-5xl">{step.title}</h1>
+        <p className="mt-3 max-w-xl text-[var(--text-2)]">Keep the best photos and star a main photo for every colour. The main photo leads that colour in the shop.</p>
+      </div>
+      {!plan.length ? (
+        <div className="flex h-60 items-center justify-center border border-dashed border-[var(--line-2)] text-center text-sm text-[var(--text-2)]">Nothing to render yet: every photo needs a saved print box (step 4) and an uploaded design file (step 1).</div>
+      ) : (
+        draft.colours.map((code) => {
+          const items = visible.filter((it) => it.code === code);
+          const all = plan.filter((it) => it.code === code);
+          if (!all.length) return null;
+          const colour = all[0].colour;
+          const mainOk = renders[draft.mainByColour[code]]?.status === "keep";
+          return (
+            <section key={code} className="mb-10">
+              <header className="mb-3 flex flex-wrap items-center gap-3 border-b border-[var(--line)] pb-2">
+                <Swatch hex={colour.fabric} />
+                <h2 className="text-lg font-medium">{colour.name}</h2>
+                <span className="font-mono text-xs text-[var(--text-3)]">
+                  {all.filter((it) => renders[it.id]).length} / {all.length}
+                </span>
+                <span className={`label ml-auto !text-[10px] ${mainOk ? "text-[var(--success)]" : "text-[var(--accent)]"}`}>{mainOk ? "Main photo set" : "Star a main photo"}</span>
+              </header>
+              {items.length === 0 ? (
+                <p className="text-xs text-[var(--text-3)]">Nothing in this filter.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-5">
+                  {items.map((it) => (
+                    <Card
+                      key={it.id}
+                      item={it}
+                      render={renders[it.id]}
+                      main={draft.mainByColour[code] === it.id}
+                      focused={focus?.id === it.id}
+                      busy={busyIds.has(it.id)}
+                      onFocus={() => setFocusId(it.id)}
+                      onDecide={(s) => decide(it.id, s)}
+                      onStar={() => star(it)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          );
+        })
+      )}
+    </div>
   );
 
-  const set = focus && modelSets.find((m) => m.id === focus.setId);
-  const inspector = focus ? (
-    <div className="space-y-5">
-      <div className="overflow-hidden rounded-2xl">
-        <ModelFigure angle={focus.angle} tee={colourOf(focus.code).hex} skin={set?.skin} hair={set?.hair} print={focus.slot} className="aspect-[4/5] w-full" />
-      </div>
-      <dl className="grid grid-cols-2 gap-y-2 text-sm">
-        <dt className="text-[var(--text-3)]">Model</dt><dd className="text-right text-white">{set?.name}</dd>
-        <dt className="text-[var(--text-3)]">Angle</dt><dd className="text-right text-white">{angleLabel(focus.angle)}</dd>
-        <dt className="text-[var(--text-3)]">Colour</dt><dd className="text-right text-white">{colourOf(focus.code).name}</dd>
-        <dt className="text-[var(--text-3)]">Print</dt><dd className="text-right font-mono text-white">{focus.slot}</dd>
-      </dl>
-      <div className="grid grid-cols-2 gap-2">
-        <GhostButton onClick={() => decide(focus.id, "reject")} active={draft.review[focus.id] === "reject"}><X className="h-4 w-4" /> Reject</GhostButton>
-        <GhostButton onClick={() => decide(focus.id, "keep")} active={draft.review[focus.id] === "keep"}><Check className="h-4 w-4" /> Keep</GhostButton>
-      </div>
-      <GhostButton className="w-full" onClick={() => star(focus)} active={draft.mainByColour[focus.code] === focus.id}>
-        <Star className="h-4 w-4" /> Main image for {colourOf(focus.code).name}
-      </GhostButton>
-      <GhostButton className="w-full"><RefreshCw className="h-4 w-4" /> Re-render with a tweak</GhostButton>
+  // ---------- right ----------
+  const fr = focus && renders[focus.id];
+  const inspector = !focus ? (
+    <div className="flex h-full flex-col justify-center p-6 text-center">
+      <CircleDot className="mx-auto mb-3 h-5 w-5 text-[var(--text-3)]" />
+      <p className="text-sm text-[var(--text-2)]">Photos appear here as they render.</p>
     </div>
   ) : (
-    <p className="text-sm text-[var(--text-3)]">Images appear as they render.</p>
+    <div className="space-y-5 p-6">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div key={fr?.url ?? focus.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="aspect-[4/5] overflow-hidden border border-[var(--line)] bg-[var(--panel)]">
+          {fr ? <img src={fr.url} alt="" className="h-full w-full object-cover" /> : <div className="h-full animate-pulse bg-[var(--panel-2)]" />}
+        </motion.div>
+      </AnimatePresence>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+        <dt className="text-[var(--text-3)]">Model</dt>
+        <dd className="text-right">{focus.set.name}</dd>
+        <dt className="text-[var(--text-3)]">Angle</dt>
+        <dd className="text-right">{angleLabel(focus.angle)}</dd>
+        <dt className="text-[var(--text-3)]">Colour</dt>
+        <dd className="flex items-center justify-end gap-2">
+          <Swatch hex={focus.colour.fabric} /> {focus.colour.name}
+        </dd>
+        <dt className="text-[var(--text-3)]">Prints</dt>
+        <dd className="text-right font-mono">{focus.body.prints.length}</dd>
+      </dl>
+      {fr && fr.signature !== focus.signature && <p className="text-xs text-[var(--accent)]">Outdated: its box, colour or design changed since it was rendered.</p>}
+      {failures[focus.id] && <p className="text-xs text-[var(--error)]">{failures[focus.id]}</p>}
+      <div className="grid grid-cols-2 gap-2">
+        <Button onClick={() => decide(focus.id, "reject")} disabled={!fr} className={fr?.status === "reject" ? "!border-[var(--error)] !text-[var(--error)]" : ""}>
+          <X className="h-4 w-4" /> Reject
+        </Button>
+        <Button onClick={() => decide(focus.id, "keep")} disabled={!fr} className={fr?.status === "keep" ? "!border-[var(--success)] !text-[var(--success)]" : ""}>
+          <Check className="h-4 w-4" /> Keep
+        </Button>
+      </div>
+      <Button variant={draft.mainByColour[focus.code] === focus.id ? "solid" : "outline"} className="w-full" disabled={!fr} onClick={() => star(focus)}>
+        <Star className="h-4 w-4" /> {draft.mainByColour[focus.code] === focus.id ? "Main photo" : `Main photo for ${focus.colour.name}`}
+      </Button>
+      <div className="flex gap-2">
+        <Button className="flex-1" disabled={Boolean(running)} onClick={() => run([focus])}>
+          <RefreshCw className="h-4 w-4" /> Re-render
+        </Button>
+        {fr && (
+          <a href={fr.url} target="_blank" rel="noreferrer" className="label grid h-10 w-10 place-items-center border border-[var(--line-2)] text-[var(--text-2)] hover:text-[var(--text)]" aria-label="Open full size" title="Open full size">
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        )}
+      </div>
+    </div>
   );
 
-  return <Workspace panel={panel} panelTitle="Review" stage={stage} inspector={inspector} inspectorTitle="Image" />;
+  return (
+    <div className="scroll-y h-full lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden xl:grid-cols-[19rem_minmax(0,1fr)_20rem]">
+      <aside className="border-b border-[var(--line)] lg:overflow-y-auto lg:border-b-0 lg:border-r">{panel}</aside>
+      <div className="lg:overflow-y-auto">
+        {stage}
+        <div className="border-t border-[var(--line)] xl:hidden">{inspector}</div>
+      </div>
+      <aside className="hidden border-l border-[var(--line)] xl:block xl:overflow-y-auto">{inspector}</aside>
+    </div>
+  );
 };
 
 export default ReviewStep;

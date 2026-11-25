@@ -37,6 +37,8 @@ export const designIdFor = async (file, { fresh = false } = {}) => {
 
 /** Renders, re-uploading the design once if the preview service has forgotten it. */
 export const renderPreview = async ({ file, ...body }) => {
+  // uploaded designs are read from Cloudinary at full quality
+  if (file.url) return mockupsApi.studioRender({ ...body, design_url: file.url });
   try {
     return await mockupsApi.studioRender({ ...body, design_id: await designIdFor(file) });
   } catch (err) {

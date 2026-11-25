@@ -1,6 +1,6 @@
 // The 8 steps, and the rule that unlocks "Next" on each (docs/STUDIO_PLAN.md §5).
 import { Crosshair, FileText, Images, Palette, Rocket, ScanBarcode, Upload, Users } from "lucide-react";
-import { ANGLES, plannedRenders } from "./data/sample";
+import { ANGLES } from "./data/sample";
 
 const slotsOf = (d) => new Set(d.design.files.map((f) => f.slot));
 /** Every print box this product needs: set × chosen angle × each slot the angle takes and the design has. */
@@ -23,7 +23,15 @@ export const STEPS = [
     title: "Drop in the artwork",
     subtitle: "Upload the print files. FR, BK and LP are sorted by file name.",
     missing: (d) =>
-      !d.design.name.trim() ? "Name the design" : !d.design.categoryId ? "Choose a series" : !d.design.files.length ? "Add at least one print file" : null,
+      !d.design.name.trim()
+        ? "Name the design"
+        : !d.design.categoryId
+          ? "Choose a series"
+          : !d.design.files.length
+            ? "Add at least one print file"
+            : d.design.files.some((f) => !f.url)
+              ? "Every file must finish uploading (replace any that failed)"
+              : null,
   },
   {
     key: "models",
@@ -60,11 +68,13 @@ export const STEPS = [
     title: "Review the shots",
     subtitle: "Keep the best, star a main image for every colour.",
     missing: (d) => {
-      const renders = plannedRenders(d);
-      const bad = d.colours.filter(
-        (code) => !renders.some((r) => r.code === code && d.review[r.id] !== "reject") || !d.mainByColour[code],
-      );
-      return bad.length ? `Star a main image for ${bad.length} colour${bad.length > 1 ? "s" : ""}` : null;
+      const renders = Object.entries(d.renders ?? {});
+      if (!renders.length) return "Render the photos first";
+      const kept = (code) => renders.some(([, r]) => r.code === code && r.status === "keep");
+      const noneKept = d.colours.filter((code) => !kept(code));
+      if (noneKept.length) return `Keep at least one photo for ${noneKept.length} colour${noneKept.length > 1 ? "s" : ""}`;
+      const noMain = d.colours.filter((code) => d.renders[d.mainByColour?.[code]]?.status !== "keep");
+      return noMain.length ? `Star a main photo for ${noMain.length} colour${noMain.length > 1 ? "s" : ""}` : null;
     },
   },
   {
