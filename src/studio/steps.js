@@ -1,6 +1,7 @@
 // The 8 steps, and the rule that unlocks "Next" on each (docs/STUDIO_PLAN.md §5).
 import { Crosshair, FileText, Images, Palette, Rocket, ScanBarcode, Upload, Users } from "lucide-react";
 import { ANGLES } from "./data/sample";
+import { EMPTY_DETAILS, detailsMissing } from "./details";
 
 const slotsOf = (d) => new Set(d.design.files.map((f) => f.slot));
 /** Every print box this product needs: set × chosen angle × each slot the angle takes and the design has. */
@@ -83,15 +84,7 @@ export const STEPS = [
     icon: FileText,
     title: "Describe the product",
     subtitle: "What customers will read in the shop.",
-    missing: (d) => {
-      const x = d.details;
-      if (!x.name.trim()) return "Add a product name";
-      if (!x.category) return "Choose a category";
-      if (!(Number(x.price) > 0)) return "Set a price";
-      if (!x.details.trim()) return "Add at least one detail line";
-      if (!x.sizes.length) return "Choose at least one size";
-      return null;
-    },
+    missing: (d) => detailsMissing({ ...EMPTY_DETAILS(), ...d.details }),
   },
   {
     key: "skus",

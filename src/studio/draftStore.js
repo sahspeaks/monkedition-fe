@@ -1,11 +1,12 @@
 // Drafts for the prototype, kept in this browser's localStorage so the list
 // survives a refresh. In phase 4 they come from the backend (studioDrafts).
 import { STEPS } from "./steps";
+import { EMPTY_DETAILS } from "./details";
 
 const KEY = "monk-studio-drafts";
 
 /** Steps with a real screen use their own rule (steps.js); the rest use "Mark as done". */
-export const BUILT_STEPS = new Set(["design", "models", "colours", "placement", "review"]);
+export const BUILT_STEPS = new Set(["design", "models", "colours", "placement", "review", "details"]);
 
 const emptyDesign = () => ({ name: "", categoryId: null, series: "", categoryPath: "", files: [] });
 
@@ -20,6 +21,8 @@ const normalise = (d) => ({
   placements: d.placements && typeof d.placements === "object" ? d.placements : {},
   renders: d.renders && typeof d.renders === "object" ? d.renders : {},
   mainByColour: d.mainByColour && typeof d.mainByColour === "object" ? d.mainByColour : {},
+  // older drafts kept sample details from the prototype: start them fresh
+  details: d.details && "discount" in d.details && typeof d.details.seeded === "boolean" ? { ...EMPTY_DETAILS(), ...d.details } : EMPTY_DETAILS(),
 });
 
 export const loadDrafts = () => {
@@ -42,7 +45,7 @@ export const saveDrafts = (drafts) => {
 
 export const newDraft = () => {
   const now = Date.now();
-  return { id: Math.random().toString(36).slice(2, 10), name: "Untitled product", doneSteps: [], design: emptyDesign(), modelSetIds: [], anglesBySet: {}, colours: [], variantByColour: {}, placements: {}, renders: {}, mainByColour: {}, createdAt: now, updatedAt: now };
+  return { id: Math.random().toString(36).slice(2, 10), name: "Untitled product", doneSteps: [], design: emptyDesign(), modelSetIds: [], anglesBySet: {}, colours: [], variantByColour: {}, placements: {}, renders: {}, mainByColour: {}, details: EMPTY_DETAILS(), createdAt: now, updatedAt: now };
 };
 
 export const stepDone = (draft, i) => {

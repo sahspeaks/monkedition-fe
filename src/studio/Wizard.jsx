@@ -14,9 +14,10 @@ import ModelsStep from "./steps/ModelsStep";
 import ColoursStep from "./steps/ColoursStep";
 import PlacementStep from "./steps/PlacementStep";
 import ReviewStep from "./steps/ReviewStep";
+import DetailsStep from "./steps/DetailsStep";
 
 /** Steps with a real screen; the others show a placeholder for now. */
-const SCREENS = { design: DesignStep, models: ModelsStep, colours: ColoursStep, placement: PlacementStep, review: ReviewStep };
+const SCREENS = { design: DesignStep, models: ModelsStep, colours: ColoursStep, placement: PlacementStep, review: ReviewStep, details: DetailsStep };
 
 const ease = [0.22, 1, 0.36, 1];
 
