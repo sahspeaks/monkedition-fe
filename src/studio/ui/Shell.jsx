@@ -135,7 +135,7 @@ export const Stepper = ({ current, isDone, onJump }) => {
   );
 };
 
-export const TopBar = ({ draft, onRename, saving }) => {
+export const TopBar = ({ draft, onRename, save }) => {
   const [editing, setEditing] = useState(false);
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b border-[var(--line)] px-4 md:px-6">
@@ -163,8 +163,8 @@ export const TopBar = ({ draft, onRename, saving }) => {
       )}
       <div className="ml-auto flex items-center gap-4">
         <span className="label hidden items-center gap-2 text-[var(--text-3)] md:flex" aria-live="polite">
-          <span className={`h-1.5 w-1.5 rounded-full ${saving ? "bg-[var(--accent)]" : "bg-[var(--success)]"}`} />
-          {saving ? "Saving" : "Saved"}
+          <span className={`h-1.5 w-1.5 rounded-full ${save?.state === "error" ? "bg-[var(--error)]" : save?.state === "saving" ? "bg-[var(--accent)]" : "bg-[var(--success)]"}`} />
+          <span title={save?.error || undefined}>{save?.state === "error" ? "Not saved" : save?.state === "saving" ? "Saving" : "Saved"}</span>
         </span>
         <ThemeToggle />
       </div>

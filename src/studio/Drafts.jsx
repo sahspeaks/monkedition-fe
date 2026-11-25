@@ -8,6 +8,7 @@ import { STEPS } from "./steps";
 import { useStudio } from "./context";
 import { doneCount, newDraft, resumeStep, stepDone } from "./draftStore";
 import { Button, ThemeToggle, Wordmark } from "./ui/Shell";
+import { errorText } from "../dashboard/api";
 
 const ease = [0.22, 1, 0.36, 1];
 const pad = (n) => String(n).padStart(2, "0");
@@ -49,18 +50,36 @@ const StartFresh = () => {
 };
 
 const Drafts = () => {
-  const { drafts, setDrafts } = useStudio();
+  const { drafts, setDrafts, draftsStatus, draftsError, reloadDrafts, deleteDraft } = useStudio();
   const navigate = useNavigate();
   const reduce = useReducedMotion();
   const [confirmId, setConfirmId] = useState(null);
-  // latched: once there are no drafts, keep showing StartFresh until it has
-  // created and opened the new one (the list would otherwise take over)
-  const [starting, setStarting] = useState(drafts.length === 0);
+  const [deleteError, setDeleteError] = useState("");
+  // latched: once the shared list has loaded empty, keep showing StartFresh
+  // until it has created and opened the new draft (the list would otherwise take over)
+  const [starting, setStarting] = useState(false);
   useEffect(() => {
-    if (drafts.length === 0) setStarting(true);
-  }, [drafts.length]);
+    if (draftsStatus === "ready" && drafts.length === 0) setStarting(true);
+  }, [draftsStatus, drafts.length]);
 
   if (starting) return <StartFresh />;
+  if (draftsStatus !== "ready") {
+    return (
+      <div className="grid h-full place-items-center p-6 text-center">
+        {draftsStatus === "error" ? (
+          <div>
+            <p className="text-lg">Couldn&apos;t load the drafts</p>
+            <p className="mt-1 text-sm text-[var(--text-2)]">{draftsError}</p>
+            <Button className="mt-5" onClick={reloadDrafts}>
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <span className="label text-[var(--text-3)]">Loading drafts…</span>
+        )}
+      </div>
+    );
+  }
 
   const list = [...drafts].sort((a, b) => b.updatedAt - a.updatedAt);
   const open = (d) => navigate(`/studio/d/${d.id}/${resumeStep(d).key}`);
@@ -69,9 +88,15 @@ const Drafts = () => {
     setDrafts((all) => [d, ...all]);
     navigate(`/studio/d/${d.id}/${STEPS[0].key}`);
   };
-  const remove = (id) => {
-    setDrafts((all) => all.filter((d) => d.id !== id));
-    setConfirmId(null);
+  const remove = async (id) => {
+    setDeleteError("");
+    try {
+      await deleteDraft(id);
+    } catch (err) {
+      setDeleteError(errorText(err));
+    } finally {
+      setConfirmId(null);
+    }
   };
 
   return (
@@ -93,13 +118,19 @@ const Drafts = () => {
         <div className="mx-auto max-w-6xl px-4 py-10 md:px-8 md:py-14">
           <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease }} className="mb-10 flex items-end justify-between gap-6">
             <div>
-              <p className="label mb-4 text-[var(--text-3)]">Studio · work in progress</p>
+              <p className="label mb-4 text-[var(--text-3)]">Studio · shared with all staff</p>
               <h1 className="text-6xl font-semibold leading-[0.9] tracking-[-0.045em] md:text-8xl">
                 Drafts <span className="align-top font-mono text-2xl font-normal tracking-normal text-[var(--accent)] md:text-3xl">({pad(list.length)})</span>
               </h1>
             </div>
             <p className="hidden max-w-xs pb-2 text-sm text-[var(--text-2)] md:block">Pick up where you left off, or start a new product from a design file.</p>
           </motion.div>
+
+          {deleteError && (
+            <p className="mb-4 border border-[var(--error)] px-4 py-3 text-sm text-[var(--error)]" role="alert">
+              Couldn&apos;t delete: {deleteError}
+            </p>
+          )}
 
           {/* column heads */}
           <div className="label hidden grid-cols-[3rem_1fr_15rem_8rem_5.5rem] gap-4 border-b border-[var(--line)] pb-3 text-[var(--text-3)] md:grid">

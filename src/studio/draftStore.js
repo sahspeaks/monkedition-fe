@@ -1,17 +1,20 @@
-// Drafts for the prototype, kept in this browser's localStorage so the list
-// survives a refresh. In phase 4 they come from the backend (studioDrafts).
+// Studio drafts live in the backend, shared by all staff
+// (GET/PUT/DELETE /api/v2/admin/studio/drafts). Each save carries the version
+// it started from, so two people can't silently overwrite each other.
+// Drafts made before this lived in the browser's localStorage; they are
+// imported once (see useDrafts.js).
+import { admin } from "../dashboard/api";
 import { STEPS } from "./steps";
 import { EMPTY_DETAILS } from "./details";
-
-const KEY = "monk-studio-drafts";
 
 /** Steps with a real screen use their own rule (steps.js); the rest use "Mark as done". */
 export const BUILT_STEPS = new Set(["design", "models", "colours", "placement", "review", "details", "skus", "publish"]);
 
 const emptyDesign = () => ({ name: "", categoryId: null, series: "", categoryPath: "", files: [] });
 
-const normalise = (d) => ({
+export const normalise = (d) => ({
   ...d,
+  name: typeof d.name === "string" && d.name ? d.name : "Untitled product",
   doneSteps: Array.isArray(d.doneSteps) ? d.doneSteps : [],
   design: { ...emptyDesign(), ...d.design },
   modelSetIds: Array.isArray(d.modelSetIds) ? d.modelSetIds : [],
@@ -27,29 +30,13 @@ const normalise = (d) => ({
   skuPattern: typeof d.skuPattern === "string" ? d.skuPattern : "",
   // the prototype stored `published: true`; only a real product id counts
   published: d.published?.productId ? d.published : null,
+  createdAt: d.createdAt ?? Date.now(),
+  updatedAt: d.updatedAt ?? Date.now(),
 });
-
-export const loadDrafts = () => {
-  try {
-    const list = JSON.parse(localStorage.getItem(KEY) ?? "[]");
-    return Array.isArray(list) ? list.filter((d) => d && d.id).map(normalise) : [];
-  } catch {
-    return [];
-  }
-};
-
-export const saveDrafts = (drafts) => {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(drafts));
-    return true;
-  } catch {
-    return false; // storage blocked or full: drafts live in memory only
-  }
-};
 
 export const newDraft = () => {
   const now = Date.now();
-  return { id: Math.random().toString(36).slice(2, 10), name: "Untitled product", doneSteps: [], design: emptyDesign(), modelSetIds: [], anglesBySet: {}, colours: [], variantByColour: {}, placements: {}, renders: {}, mainByColour: {}, details: EMPTY_DETAILS(), skus: {}, skuPattern: "", published: null, createdAt: now, updatedAt: now };
+  return normalise({ id: Math.random().toString(36).slice(2, 10), name: "Untitled product", createdAt: now, updatedAt: now });
 };
 
 export const stepDone = (draft, i) => {
@@ -64,3 +51,58 @@ export const resumeStep = (draft) => {
 };
 
 export const doneCount = (draft) => STEPS.filter((_, i) => stepDone(draft, i)).length;
+
+// ---- server ------------------------------------------------------------------
+
+/** A small preview from Cloudinary (resized on their side) instead of an embedded image. */
+const cloudThumb = (url) => (url.includes("res.cloudinary.com/") && !url.includes("/upload/w_") ? url.replace("/upload/", "/upload/w_480,c_limit,f_auto,q_auto/") : url);
+
+/**
+ * What gets stored: the draft without embedded images. Design previews made
+ * in the browser (data: URLs, ~100 kB each) become Cloudinary preview links;
+ * a file that never uploaded keeps no preview (step 1 asks to replace it).
+ */
+export const forServer = (draft) => {
+  const { id, ...data } = draft; // eslint-disable-line no-unused-vars
+  return {
+    ...data,
+    design: {
+      ...data.design,
+      files: data.design.files.map((f) => ({ ...f, thumb: f.url ? cloudThumb(f.url) : f.thumb?.startsWith("data:") ? "" : (f.thumb ?? "") })),
+    },
+  };
+};
+
+/** [{ draft, version }] */
+export const fetchDrafts = async () => {
+  const { items } = await admin.get("/studio/drafts");
+  return (items ?? []).map((item) => ({ draft: normalise({ ...item.data, id: item.id }), version: item.version }));
+};
+
+/** Saves; resolves to the new version. A 409 means someone else saved first (err.body.errors = their draft). */
+export const putDraft = async (draft, version) => (await admin.put(`/studio/drafts/${draft.id}`, { version, data: forServer(draft) })).version;
+
+export const removeDraft = (id) => admin.delete(`/studio/drafts/${id}`);
+
+// ---- the old browser copy, read once to import --------------------------------
+
+const LOCAL_KEY = "monk-studio-drafts";
+
+export const readLocalDrafts = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? "[]");
+    return Array.isArray(list) ? list.filter((d) => d && d.id).map(normalise) : [];
+  } catch {
+    return [];
+  }
+};
+
+/** Keeps only the drafts that failed to import (or clears the key). */
+export const keepLocalDrafts = (drafts) => {
+  try {
+    if (drafts.length) localStorage.setItem(LOCAL_KEY, JSON.stringify(drafts));
+    else localStorage.removeItem(LOCAL_KEY);
+  } catch {
+    /* storage blocked */
+  }
+};

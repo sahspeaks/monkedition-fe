@@ -1,7 +1,7 @@
 // The stepper flow for one draft. This round builds only the stepper: each
 // step shows a placeholder, and "Mark as done" stands in for the real step
 // rules (steps.js) so every stepper state can be tried. The URL holds the step.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, RotateCcw } from "lucide-react";
@@ -76,15 +76,13 @@ const Placeholder = ({ step, index, done, onToggle, direction }) => (
 
 const Wizard = () => {
   const { draftId, stepKey } = useParams();
-  const { drafts, setDrafts } = useStudio();
+  const { drafts, setDrafts, draftsStatus, saveState } = useStudio();
   const navigate = useNavigate();
   const reduce = useReducedMotion();
   const draft = drafts.find((d) => d.id === draftId);
   const index = stepIndex(stepKey);
   const previous = useRef(index);
   const direction = index >= previous.current ? 1 : -1;
-  const [saving, setSaving] = useState(false);
-  const saveTimer = useRef(null);
 
   useEffect(() => {
     previous.current = index;
@@ -93,9 +91,6 @@ const Wizard = () => {
   const update = useCallback(
     (fn) => {
       setDrafts((all) => all.map((d) => (d.id === draftId ? { ...fn(d), updatedAt: Date.now() } : d)));
-      setSaving(true);
-      clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => setSaving(false), 700);
     },
     [draftId, setDrafts],
   );
@@ -117,6 +112,7 @@ const Wizard = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [index, missing, go]);
 
+  if (draftsStatus === "loading") return <div className="grid h-full place-items-center"><span className="label text-[var(--text-3)]">Loading draft…</span></div>;
   if (!draft) return <Navigate to="/studio" replace />;
   if (index < 0) return <Navigate to={`/studio/d/${draftId}/${STEPS[0].key}`} replace />;
   if (!reachable(index)) {
@@ -134,7 +130,7 @@ const Wizard = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <TopBar draft={draft} onRename={(name) => update((d) => ({ ...d, name }))} saving={saving} />
+      <TopBar draft={draft} onRename={(name) => update((d) => ({ ...d, name }))} save={saveState[draftId]} />
       <Stepper current={index} isDone={isDone} onJump={go} />
       <main className="relative min-h-0 flex-1 overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false} custom={direction}>
