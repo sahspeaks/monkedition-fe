@@ -2,6 +2,7 @@
 import { Crosshair, FileText, Images, Palette, Rocket, ScanBarcode, Upload, Users } from "lucide-react";
 import { ANGLES } from "./data/sample";
 import { EMPTY_DETAILS, detailsMissing } from "./details";
+import { skusMissing } from "./skus";
 
 const slotsOf = (d) => new Set(d.design.files.map((f) => f.slot));
 /** Every print box this product needs: set × chosen angle × each slot the angle takes and the design has. */
@@ -92,12 +93,7 @@ export const STEPS = [
     icon: ScanBarcode,
     title: "Link Qikink SKUs",
     subtitle: "Each colour and size needs the SKU Qikink prints from.",
-    missing: (d) => {
-      const values = Object.values(d.skus).map((v) => v.trim()).filter(Boolean);
-      if (!values.length) return "Add at least one SKU";
-      if (new Set(values).size !== values.length) return "Two cells share the same SKU";
-      return null;
-    },
+    missing: skusMissing,
   },
   {
     key: "publish",
